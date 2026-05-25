@@ -2,7 +2,7 @@
 import math
 from datetime import date, timedelta
 from collections import Counter
-from text_features import extract_text_features, extract_diary_features
+from text_features import extract_diary_features
 
 MOOD_SCORE = {"开心": 5, "放松": 4, "平静": 3, "低落": 2, "焦虑": 1, "疲惫": 1}
 

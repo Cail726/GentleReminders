@@ -2,7 +2,6 @@
 
 模型输出5个心理健康维度评分（0-100），仅用于状态描述，不构成诊断。
 """
-import json
 import os
 import pickle
 import numpy as np
