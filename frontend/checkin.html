@@ -1,0 +1,161 @@
+{% extends "base_student.html" %}
+{% block title %}情绪打卡 - Gentle Reminders{% endblock %}
+{% block page_css %}
+<style>
+    .checkin-layout { max-width: 620px; margin: 0 auto; }
+
+    .emotion-pick-area { margin-bottom: 28px; }
+    .emotion-pick-area .section-label {
+        text-align: center; font-size: 15px; font-weight: 700;
+        color: var(--text); margin-bottom: 16px;
+    }
+
+    .diary-area { margin-bottom: 24px; }
+
+    .save-feedback {
+        text-align: center; padding: 16px; border-radius: var(--radius);
+        background: var(--brand-50); color: var(--secondary-dark);
+        font-weight: 600; font-size: 15px;
+        display: none; animation: slideUp 0.4s var(--ease);
+    }
+    .save-feedback.show { display: block; }
+
+    .tree-mini {
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 20px; border-radius: var(--radius);
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-sm);
+    }
+    .tree-mini .tm-emoji {
+        font-size: 42px; transition: transform 0.4s var(--ease-bounce);
+    }
+    .tree-mini .tm-info { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+    .tree-mini .tm-info strong { color: var(--text); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container checkin-layout">
+    <h1 class="page-title">今日情绪打卡</h1>
+    <p class="page-subtitle">选一个最能代表你此刻心情的情绪，再写几句话吧</p>
+
+    <div class="emotion-pick-area">
+        <p class="section-label">点击选择一个情绪</p>
+        <div class="emotion-selector" id="emotionSelector"></div>
+    </div>
+
+    <div class="diary-area">
+        <textarea class="textarea-lg" id="content" placeholder="今天发生了什么？开心的事、烦恼的事、任何想说的...&#10;&#10;写下来，让小树陪你一起感受～"></textarea>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-primary btn-lg ripple" onclick="saveCheckin()" id="btnSave">保存打卡</button>
+        <button class="btn btn-ghost ripple" onclick="analyzeText()" id="btnAnalyze">AI 帮我识别情绪</button>
+    </div>
+
+    <div class="save-feedback" id="saveFeedback"></div>
+
+    <div class="tree-mini" id="treeMini" style="margin-top:24px;">
+        <span class="tm-emoji" id="treeEmoji">🌱</span>
+        <div class="tm-info">
+            小树等级 <strong id="treeLevel">1</strong> 级 ·
+            经验 <strong id="treeExp">0</strong>/100 ·
+            健康 <strong id="treeHealth">100</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    const EMOTIONS = ['开心','放松','平静','低落','焦虑','疲惫'];
+    const EMO_COLORS = GR.EMO_COLORS;
+    const EMO_EMOJIS = GR.EMO_EMOJIS;
+
+    let currentEmotion = '';
+
+    function buildEmotionCards() {
+        const wrap = document.getElementById('emotionSelector');
+        wrap.innerHTML = EMOTIONS.map(e =>
+            '<div class="emotion-card" data-emotion="' + e + '" onclick="pickEmotion(\'' + e + '\', this)" style="border-top:3px solid ' + (EMO_COLORS[e]||'#ccc') + ';">' +
+            '<span class="ec-emoji">' + (EMO_EMOJIS[e]||'') + '</span>' +
+            '<span class="ec-label">' + e + '</span></div>'
+        ).join('');
+    }
+
+    function pickEmotion(emo, el) {
+        currentEmotion = emo;
+        document.querySelectorAll('.emotion-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    async function analyzeText() {
+        const text = document.getElementById('content').value.trim();
+        if (!text) { GR.toast('请先写下你的心情文字哦～', 'info'); return; }
+        const btn = document.getElementById('btnAnalyze');
+        btn.disabled = true; btn.textContent = '分析中...';
+
+        try {
+            const fd = new FormData(); fd.append('text', text);
+            const r = await fetch('/api/ai/analyze-emotion', { method: 'POST', body: fd });
+            const d = await r.json();
+            currentEmotion = d.emotion;
+            document.querySelectorAll('.emotion-card').forEach(c => {
+                c.classList.remove('selected');
+                if (c.dataset.emotion === currentEmotion) c.classList.add('selected');
+            });
+            document.getElementById('saveFeedback').className = 'save-feedback show';
+            document.getElementById('saveFeedback').textContent = 'AI 识别到你的情绪是「' + currentEmotion + '」，点击保存即可记录';
+        } catch (e) { GR.toast('分析失败，请重试', 'error'); }
+        finally { btn.disabled = false; btn.textContent = 'AI 帮我识别情绪'; }
+    }
+
+    async function saveCheckin() {
+        const text = document.getElementById('content').value.trim();
+        if (!currentEmotion) { GR.toast('请先点击选择一个情绪，或使用 AI 识别', 'info'); return; }
+        const btn = document.getElementById('btnSave');
+        btn.disabled = true; btn.textContent = '保存中...';
+
+        try {
+            const fd = new FormData();
+            fd.append('emotion', currentEmotion);
+            fd.append('content', text);
+            const r = await fetch('/api/checkin', { method: 'POST', body: fd });
+            const d = await r.json();
+
+            document.getElementById('treeLevel').textContent = d.tree_level;
+            document.getElementById('treeExp').textContent = d.tree_exp;
+            document.getElementById('treeHealth').textContent = d.tree_health;
+            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
+            const lvl = Math.min(d.tree_level, 10);
+            document.getElementById('treeEmoji').textContent = treeEmojis[Math.max(0, lvl - 1)] || '🌲';
+
+            const fb = document.getElementById('saveFeedback');
+            fb.className = 'save-feedback show';
+            fb.textContent = '打卡成功！小树感受到你的「' + currentEmotion + '」，获得了成长力量～';
+
+            currentEmotion = '';
+            document.querySelectorAll('.emotion-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('content').value = '';
+
+        } catch (e) { GR.toast('保存失败，请重试', 'error'); }
+        finally { btn.disabled = false; btn.textContent = '保存打卡'; }
+    }
+
+    async function loadTreeMini() {
+        try {
+            const r = await fetch('/api/tree/info');
+            const t = await r.json();
+            document.getElementById('treeLevel').textContent = t.level;
+            document.getElementById('treeExp').textContent = t.exp;
+            document.getElementById('treeHealth').textContent = t.health;
+            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
+            const lvl = Math.min(t.level, 10);
+            document.getElementById('treeEmoji').textContent = treeEmojis[Math.max(0, lvl - 1)] || '🌲';
+        } catch (e) {}
+    }
+
+    buildEmotionCards();
+    loadTreeMini();
+</script>
+{% endblock %}

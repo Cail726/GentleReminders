@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}注册 - Gentle Reminders{% endblock %}
+{% block body_attrs %} class="no-nav"{% endblock %}
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="brand-area">
+            <div class="brand-icon">🌱</div>
+            <h1>Gentle Reminders</h1>
+            <p class="subtitle">创建你的心灵小树账号</p>
+        </div>
+        <div class="form-group">
+            <label>用户名 / 学号</label>
+            <input type="text" id="username" placeholder="设置用户名或学号" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label>登录密码</label>
+            <input type="password" id="password" placeholder="设置登录密码" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label>昵称（选填，默认为"小伙伴"）</label>
+            <input type="text" id="nickname" placeholder="你希望被怎么称呼？" onkeydown="if(event.key==='Enter')handleRegister()">
+        </div>
+        <button class="btn btn-primary ripple" onclick="handleRegister()" style="width:100%;padding:14px;font-size:16px;margin-top:8px;">立即注册</button>
+        <div class="switch-tip">
+            已有账号？<a href="/login">去登录</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    async function handleRegister() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const nickname = document.getElementById('nickname').value.trim() || '小伙伴';
+        if (!username || !password) { GR.toast('用户名和密码不能为空', 'error'); return; }
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+        formData.append('nickname', nickname);
+        try {
+            const res = await fetch('/api/register', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.code === 200) { GR.toast('注册成功，即将跳转...', 'success'); window.location.href = '/login'; }
+            else { GR.toast(data.msg || '注册失败', 'error'); }
+        } catch (e) { GR.toast('网络异常，请检查服务是否正常', 'error'); }
+    }
+</script>
+{% endblock %}

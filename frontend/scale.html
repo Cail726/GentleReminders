@@ -1,0 +1,280 @@
+{% extends "base_student.html" %}
+{% block title %}心理量表 - Gentle Reminders{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
+{% block page_css %}
+<style>
+    .scale-container { max-width: 800px; margin: 0 auto; }
+    .dim-section { margin-bottom: 28px; }
+    .dim-header {
+        font-size: 16px; font-weight: 700; color: var(--primary);
+        padding-bottom: 10px; border-bottom: 2px solid var(--border-light);
+        margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .q-item {
+        background: var(--bg-card); border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 10px;
+        transition: all var(--fast);
+    }
+    .q-item:hover { box-shadow: var(--shadow-sm); }
+    .q-text { font-size: 14px; color: var(--text); margin-bottom: 10px; font-weight: 500; }
+    .q-options { display: flex; gap: 8px; }
+    .q-opt {
+        flex: 1; text-align: center; padding: 8px 4px; border-radius: 7px;
+        border: 1.5px solid var(--border); cursor: pointer; font-size: 13px;
+        background: var(--bg-input); color: var(--text-secondary);
+        transition: all var(--fast) var(--ease); user-select: none;
+    }
+    .q-opt:hover { border-color: var(--primary); color: var(--primary); }
+    .q-opt.selected { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+    .q-item.answered { border-left: 3px solid var(--secondary); }
+
+    .scale-progress-wrap { margin-bottom: 28px; }
+    .scale-progress-text { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+
+    .notice-box.scale-notice { margin-bottom: 28px; }
+
+    .result-header { text-align: center; margin-bottom: 24px; }
+    .result-overall-badge {
+        display: inline-block; padding: 8px 22px; border-radius: 20px;
+        font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;
+    }
+    .result-overall-badge.green { background: #4ECDC4; }
+    .result-overall-badge.yellow { background: #F0A050; }
+    .result-overall-badge.orange { background: #E07B7B; }
+    .result-overall-badge.red { background: #D94444; }
+
+    .dim-result { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .dim-card {
+        background: var(--bg-card); padding: 16px 18px; border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light); border-left: 4px solid #ccc;
+    }
+    .dim-card.green { border-left-color: #4ECDC4; }
+    .dim-card.yellow { border-left-color: #F0A050; }
+    .dim-card.orange { border-left-color: #E07B7B; }
+    .dim-card.red { border-left-color: #D94444; }
+    .dim-card .dim-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .dim-card .dim-score { font-size: 22px; font-weight: 800; margin-bottom: 2px; }
+    .dim-card .dim-label { font-size: 12px; color: var(--text-muted); }
+    .dim-card .dim-desc { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6; }
+    .dim-card.green .dim-score { color: #4ECDC4; }
+    .dim-card.yellow .dim-score { color: #F0A050; }
+    .dim-card.orange .dim-score { color: #E07B7B; }
+    .dim-card.red .dim-score { color: #D94444; }
+
+    .chart-box.radar { width: 100%; height: 420px; margin: 0 auto 20px; }
+
+    .history-table { margin-top: 28px; }
+
+    @media (max-width: 768px) {
+        .q-options { flex-wrap: wrap; }
+        .q-opt { flex: 1 1 50px; font-size: 12px; padding: 7px 2px; }
+        .dim-result { grid-template-columns: 1fr; }
+        .chart-box.radar { height: 320px; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container scale-container">
+    <h1 class="page-title">📋 心理状态自评量表</h1>
+    <p class="page-subtitle">25道题目，约5分钟完成 · 了解自己的心理状态</p>
+
+    <div class="notice-box scale-notice" id="noticeBox">
+        ⚠️ <strong>重要提示：</strong>本量表仅用于自我了解与状态描述，<strong>不构成任何医学或心理学诊断</strong>。如果你的测评结果显示较高困扰，建议与信任的朋友、家人交流，或主动寻求学校心理咨询中心的专业帮助。
+    </div>
+
+    <div id="scaleArea"></div>
+
+    <div id="resultArea" style="display:none;">
+        <div class="result-header" id="resultHeader"></div>
+        <div class="chart-box radar" id="radarChart"></div>
+        <div class="dim-result" id="dimResults"></div>
+        <div class="card" id="historyCard" style="display:none;">
+            <h3>📊 历史测评记录</h3>
+            <div class="data-table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>时间</th><th>总分</th><th>总体评价</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary ripple" onclick="resetScale()">🔄 重新测评</button>
+            <a href="/" class="btn btn-ghost ripple">返回首页</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    const OPTION_LABELS = ['从不', '偶尔', '有时', '经常', '总是'];
+    const LEVEL_COLORS = {green:'#4ECDC4', yellow:'#F0A050', orange:'#E07B7B', red:'#D94444'};
+    let questions = [];
+    let answers = {};
+    let currentResult = null;
+    let historyData = [];
+
+    async function initPage() {
+        const r = await fetch('/api/scale/questions');
+        questions = await r.json();
+        const [hRes] = await Promise.all([fetch('/api/scale/history')]);
+        historyData = await hRes.json();
+        if (historyData.length > 0) {
+            currentResult = historyData[0];
+            showResult();
+        } else {
+            showScale();
+        }
+    }
+
+    function showScale() {
+        document.getElementById('scaleArea').style.display = 'block';
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('noticeBox').style.display = 'block';
+        answers = {};
+
+        const dims = {};
+        questions.forEach(q => {
+            if (!dims[q.dimension]) dims[q.dimension] = [];
+            dims[q.dimension].push(q);
+        });
+
+        const dimEmojis = {'焦虑感受':'😰','情绪状态':'💙','社交状态':'🤝','压力与疲惫':'😫','睡眠质量':'😴'};
+        let html = '<div class="scale-progress-wrap"><div class="scale-progress-text"><span>答题进度</span><span id="progressText">0/' + questions.length + '</span></div><div class="progress-bar"><div class="progress-fill" id="scaleProgress" style="width:0%"></div></div></div>';
+
+        for (const [dim, qs] of Object.entries(dims)) {
+            html += '<div class="dim-section"><div class="dim-header">' + (dimEmojis[dim]||'') + ' ' + dim + '</div>';
+            qs.forEach(q => {
+                html += '<div class="q-item" id="qItem' + q.id + '"><div class="q-text">' + q.id + '. ' + q.text + '</div><div class="q-options">';
+                for (let i = 1; i <= 5; i++) {
+                    html += '<div class="q-opt" data-qid="' + q.id + '" data-val="' + i + '" onclick="selectOption(this)">' + OPTION_LABELS[i-1] + '</div>';
+                }
+                html += '</div></div>';
+            });
+            html += '</div>';
+        }
+        html += '<div class="btn-group"><button class="btn btn-success btn-lg ripple" onclick="submitScale()" id="btnSubmit" disabled>📤 提交量表</button></div>';
+        document.getElementById('scaleArea').innerHTML = html;
+    }
+
+    function selectOption(el) {
+        const qid = el.dataset.qid;
+        const val = parseInt(el.dataset.val);
+        answers[qid] = val;
+
+        const parent = el.parentElement;
+        parent.querySelectorAll('.q-opt').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+
+        const qItem = document.getElementById('qItem' + qid);
+        if (qItem) qItem.classList.add('answered');
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const count = Object.keys(answers).length;
+        document.getElementById('progressText').textContent = count + '/' + questions.length;
+        document.getElementById('scaleProgress').style.width = (count / questions.length * 100) + '%';
+        document.getElementById('btnSubmit').disabled = count < questions.length;
+    }
+
+    async function submitScale() {
+        const count = Object.keys(answers).length;
+        if (count < questions.length) { GR.toast('请完成全部 ' + questions.length + ' 道题目后再提交', 'info'); return; }
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true; btn.textContent = '提交中...';
+
+        try {
+            const pairs = Object.entries(answers).map(([k,v]) => k + ':' + v).join(',');
+            const fd = new FormData(); fd.append('answers', pairs);
+            const r = await fetch('/api/scale/submit', { method: 'POST', body: fd });
+            currentResult = await r.json();
+            historyData.unshift(currentResult);
+            showResult();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) { GR.toast('提交失败，请重试', 'error'); btn.disabled = false; btn.textContent = '📤 提交量表'; }
+    }
+
+    function showResult() {
+        document.getElementById('scaleArea').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('noticeBox').style.display = 'block';
+
+        const res = currentResult;
+        const badgeColor = res.overall.level;
+        document.getElementById('resultHeader').innerHTML =
+            '<div class="result-overall-badge ' + badgeColor + '">' + res.overall.label + '</div>' +
+            '<p style="color:var(--text-secondary);font-size:14px;">综合均分 <strong style="font-size:24px;color:' + LEVEL_COLORS[badgeColor] + ';">' + res.total_score + '</strong> / 5.0 · ' + (res.time||'') + '</p>' +
+            '<p style="font-size:13px;color:var(--text-muted);max-width:500px;margin:8px auto 0;">' + res.overall.desc + '</p>';
+
+        setTimeout(() => {
+            const chartDom = document.getElementById('radarChart');
+            if (window._radarInstance) window._radarInstance.dispose();
+            const chart = echarts.init(chartDom);
+            window._radarInstance = chart;
+            const dims = ['焦虑感受','情绪状态','社交状态','压力与疲惫','睡眠质量'];
+            const scores = dims.map(d => res.dimension_scores[d] || 0);
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            chart.setOption({
+                tooltip: { trigger: 'item' },
+                legend: { data: ['你的得分'], bottom: 0, textStyle: { color: isDark ? '#A0A8B8' : '#6B7280' } },
+                radar: {
+                    center: ['50%', '48%'],
+                    radius: '68%',
+                    indicator: dims.map(d => ({ name: d, max: 5 })),
+                    axisName: { color: isDark ? '#A0A8B8' : '#6B7280', fontSize: 13 },
+                    splitArea: { areaStyle: { color: [isDark ? '#252830' : '#fff', isDark ? '#2A2D35' : '#F5F9FC'] } }
+                },
+                series: [{
+                    type: 'radar',
+                    data: [{ value: scores, name: '你的得分', areaStyle: { color: 'rgba(94,179,163,0.25)' }, lineStyle: { color: '#5EB3A3', width: 2 }, itemStyle: { color: '#5EB3A3' } }]
+                }]
+            });
+            window.addEventListener('resize', () => chart.resize());
+        }, 200);
+
+        let dimHtml = '';
+        const dimEmojis = {'焦虑感受':'😰','情绪状态':'💙','社交状态':'🤝','压力与疲惫':'😫','睡眠质量':'😴'};
+        for (const [dim, interp] of Object.entries(res.interpretations)) {
+            const score = res.dimension_scores[dim] || 0;
+            dimHtml += '<div class="dim-card ' + interp.level + '">' +
+                '<div class="dim-name">' + (dimEmojis[dim]||'') + ' ' + dim + '</div>' +
+                '<div class="dim-score">' + score.toFixed(1) + '</div>' +
+                '<div class="dim-label">' + interp.label + '</div>' +
+                '<div class="dim-desc">' + interp.desc + '</div></div>';
+        }
+        document.getElementById('dimResults').innerHTML = dimHtml;
+
+        if (historyData.length > 1) {
+            document.getElementById('historyCard').style.display = 'block';
+            let hHtml = '';
+            historyData.forEach(h => {
+                const badge = '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;background:' + LEVEL_COLORS[h.overall.level] + ';">' + h.overall.label + '</span>';
+                hHtml += '<tr><td>' + h.time + '</td><td><strong>' + h.total_score + '</strong></td><td>' + badge + '</td><td><a href="javascript:void(0)" onclick="viewDetail(' + h.id + ')" style="color:var(--primary);">查看</a></td></tr>';
+            });
+            document.getElementById('historyBody').innerHTML = hHtml;
+        } else {
+            document.getElementById('historyCard').style.display = 'none';
+        }
+    }
+
+    async function viewDetail(id) {
+        const r = await fetch('/api/scale/result/' + id);
+        currentResult = await r.json();
+        showResult();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetScale() {
+        currentResult = null;
+        showScale();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    initPage();
+</script>
+{% endblock %}

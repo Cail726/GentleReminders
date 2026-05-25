@@ -1,0 +1,121 @@
+{% extends "base_student.html" %}
+{% block title %}我的信件 - Gentle Reminders{% endblock %}
+{% block page_css %}
+<style>
+    .letters-container { max-width: 640px; margin: 0 auto; }
+
+    .letter-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        padding: 24px 28px; border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: all var(--fast) var(--ease);
+        animation: fadeInUp 0.5s var(--ease);
+    }
+    .letter-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-float); }
+    .letter-card .lc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .letter-card .lc-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .letter-card .lc-level {
+        font-size: 12px; color: var(--primary); background: var(--primary-soft, rgba(94,139,126,0.12));
+        padding: 4px 10px; border-radius: 20px;
+    }
+    .letter-card .lc-summary { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+    .letter-card .lc-time { font-size: 12px; color: var(--text-muted); }
+
+    .letter-detail {
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        padding: 36px 32px; border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 20px;
+        animation: fadeIn 0.4s var(--ease);
+    }
+    .letter-detail .ld-title {
+        font-size: 22px; font-weight: 800; color: var(--text);
+        margin-bottom: 8px; text-align: center;
+    }
+    .letter-detail .ld-meta {
+        text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 28px;
+    }
+    .letter-detail .ld-content {
+        font-size: 15px; line-height: 2; color: var(--text-secondary);
+        white-space: pre-line;
+    }
+    .letter-detail .ld-content p { margin-bottom: 16px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container letters-container">
+    <h2 style="margin-bottom:20px;">💌 我的信件</h2>
+    <div id="lettersList">
+        <p class="empty-state">还没有信件，等小树长大一些再来吧～</p>
+    </div>
+    <div id="letterDetail" style="display:none;"></div>
+    <div class="btn-group" style="margin-top:16px;">
+        <a href="/" class="btn btn-ghost ripple">返回首页</a>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    let currentLetters = [];
+
+    async function loadLetters() {
+        try {
+            const res = await fetch('/api/letters');
+            const data = await res.json();
+            currentLetters = data;
+            const wrap = document.getElementById('lettersList');
+            if (!data.length) {
+                wrap.innerHTML = '<p class="empty-state">还没有信件，等小树长大一些再来吧～</p>';
+                return;
+            }
+            let html = '';
+            data.forEach(l => {
+                html += '<div class="letter-card" onclick="showLetter(' + l.id + ')">' +
+                    '<div class="lc-header">' +
+                    '<span class="lc-title">' + l.title + '</span>' +
+                    '<span class="lc-level">🌳 Lv.' + l.tree_level + '</span>' +
+                    '</div>' +
+                    '<div class="lc-summary">' + (l.emotion_summary || '') + '</div>' +
+                    '<div class="lc-time">' + l.time + '</div>' +
+                    '</div>';
+            });
+            wrap.innerHTML = html;
+        } catch (e) { console.error(e); }
+    }
+
+    async function showLetter(id) {
+        try {
+            const res = await fetch('/api/letter/' + id);
+            const l = await res.json();
+            document.getElementById('lettersList').style.display = 'none';
+            const detail = document.getElementById('letterDetail');
+            detail.style.display = 'block';
+            detail.innerHTML =
+                '<div class="letter-detail">' +
+                '<div class="ld-title">' + l.title + '</div>' +
+                '<div class="ld-meta">🌳 小树 Lv.' + l.tree_level + ' · ' + l.time + '</div>' +
+                '<div class="ld-content">' + l.content.replace(/\n/g, '<br>') + '</div>' +
+                '<div class="btn-group" style="margin-top:24px;">' +
+                '<button class="btn btn-ghost ripple" onclick="backToList()">← 返回列表</button>' +
+                '</div>' +
+                '</div>';
+            detail.scrollIntoView({ behavior: 'smooth' });
+        } catch (e) { console.error(e); }
+    }
+
+    function backToList() {
+        document.getElementById('letterDetail').style.display = 'none';
+        document.getElementById('lettersList').style.display = 'block';
+    }
+
+    loadLetters();
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base_admin.html" %}
+{% block title %}数据总览 - 管理后台{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
+{% block page_css %}
+<style>
+    .summary-card .num.blue { color: var(--primary); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container wide">
+    <h1 class="page-title">📊 全校心理情绪统计总览</h1>
+    <p class="page-subtitle">仅展示群体统计数据，不涉及任何个人信息</p>
+
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="chart-row">
+        <div class="card">
+            <h3>🎨 情绪分布</h3>
+            <div class="chart-box" id="pieChart"></div>
+        </div>
+        <div class="card">
+            <h3>📊 数量统计</h3>
+            <div class="chart-box" id="barChart"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    const emoColors = GR.EMO_COLORS;
+    const emoIcons = GR.EMO_EMOJIS;
+    let pieChartInst, barChartInst;
+
+    async function loadData() {
+        const res = await fetch('/api/admin/emotion-count');
+        const data = await res.json();
+        renderSummary(data);
+        renderPie(data);
+        renderBar(data);
+    }
+
+    function renderSummary(data) {
+        const total = Object.values(data).reduce((a,b)=>a+b,0);
+        const risk = (data['低落']||0)+(data['焦虑']||0)+(data['疲惫']||0);
+
+        let cards = '<div class="summary-card"><div class="num blue">'+total+'</div><div class="label">总打卡次数</div></div>';
+        cards += '<div class="summary-card"><div class="num" style="color:#E07B7B;">'+risk+'</div><div class="label">风险标记次数</div></div>';
+        cards += '<div class="summary-card"><div class="num" style="color:#5EB3A3;">'+(total-risk)+'</div><div class="label">积极 / 中性次数</div></div>';
+
+        let grid = '<div class="stat-grid" style="margin-top:20px;">';
+        for (let [k,v] of Object.entries(data)) {
+            const cls = ['低落','焦虑','疲惫'].includes(k) ? 'danger' : (['开心','放松'].includes(k) ? 'success' : '');
+            grid += '<div class="stat-card '+cls+'"><div class="stat-emoji">'+(emoIcons[k]||'')+'</div><div class="stat-value">'+v+'</div><div class="stat-label">'+k+'</div></div>';
+        }
+        grid += '</div>';
+        document.getElementById('summaryCards').innerHTML = cards + grid;
+    }
+
+    function getChartOpts() {
+        const isDark = GR.getTheme() === 'dark';
+        return {
+            textStyle: { color: isDark ? '#A0A8B8' : '#6B7280' },
+            backgroundColor: 'transparent'
+        };
+    }
+
+    function renderPie(data) {
+        if (!pieChartInst) pieChartInst = echarts.init(document.getElementById('pieChart'));
+        const items = Object.entries(data).map(([k,v])=>({name:k,value:v,itemStyle:{color:emoColors[k]||'#ccc'}}));
+        const opts = getChartOpts();
+        pieChartInst.setOption({
+            ...opts,
+            tooltip: { trigger: 'item', formatter: '{b}: {c} 次 ({d}%)' },
+            series: [{ type: 'pie', radius: ['42%','72%'], center: ['50%','50%'], label:{fontSize:13}, data:items,
+                emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.2)' } } }]
+        });
+    }
+
+    function renderBar(data) {
+        if (!barChartInst) barChartInst = echarts.init(document.getElementById('barChart'));
+        const keys = Object.keys(data), values = Object.values(data);
+        const opts = getChartOpts();
+        barChartInst.setOption({
+            ...opts,
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: keys, axisLabel: { fontSize: 13 } },
+            yAxis: { type: 'value', minInterval: 1 },
+            series: [{ type: 'bar', data: values,
+                itemStyle: { color: p => emoColors[keys[p.dataIndex]]||'#ccc', borderRadius: [6,6,0,0] },
+                barMaxWidth: 50 }],
+            grid: { top: 20, right: 20, bottom: 30, left: 40 }
+        });
+    }
+
+    GR.onThemeChange(function() {
+        if (pieChartInst) pieChartInst.dispose(); pieChartInst = null;
+        if (barChartInst) barChartInst.dispose(); barChartInst = null;
+        loadData();
+    });
+
+    function handleLogout() { if (confirm('确定要退出管理后台吗？')) window.location.href = '/admin/logout'; }
+    loadData();
+</script>
+{% endblock %}

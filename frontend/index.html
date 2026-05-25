@@ -1,0 +1,166 @@
+{% extends "base_student.html" %}
+{% block title %}心灵小树 - Gentle Reminders{% endblock %}
+{% block page_css %}
+<style>
+    .home-container { max-width: 520px; margin: 0 auto; }
+
+    .tree-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        padding: 40px 30px 32px; border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--glass-border);
+        text-align: center; margin-bottom: 24px;
+        animation: fadeInUp 0.6s var(--ease);
+    }
+
+    .greeting-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+    .greeting-text strong { color: var(--text); font-size: 16px; }
+
+    .quick-stats {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+        margin: 20px 0 8px;
+    }
+    .quick-stat {
+        background: var(--bg-input); padding: 14px 10px; border-radius: var(--radius-sm);
+        text-align: center;
+    }
+    .quick-stat .qs-value { font-size: 22px; font-weight: 800; color: var(--primary); }
+    .quick-stat .qs-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+    .action-card {
+        display: block; text-decoration: none;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 22px 18px; border-radius: var(--radius);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-sm);
+        transition: all var(--fast) var(--ease);
+        text-align: center;
+    }
+    .action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
+    .action-card .ac-icon { font-size: 32px; display: block; margin-bottom: 6px; }
+    .action-card .ac-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .action-card .ac-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container home-container">
+    <div class="tree-card">
+        <div class="tree-stage">
+            <div class="tree-display" id="treeEmoji">
+                <div class="tree-particles" id="treeParticles"></div>
+                🌱
+            </div>
+        </div>
+        <p class="greeting-text"><strong id="nickname">---</strong> 的心灵小树</p>
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="qs-value" id="homeLevel">1</div>
+                <div class="qs-label">等级</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value" id="homeExp">0</div>
+                <div class="qs-label">经验</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value" id="homeHealth">100</div>
+                <div class="qs-label">健康</div>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:6px;" id="expLabel">0 / 100</p>
+    </div>
+
+    <div id="letterNotify" style="display:none; margin-top:20px;">
+        <a href="/letters" style="text-decoration:none;">
+            <div class="card" style="text-align:center; padding:18px 22px; border:1px solid var(--primary); animation: fadeIn 0.5s var(--ease);">
+                <span style="font-size:18px;">💌</span>
+                <span style="font-size:14px; font-weight:700; color:var(--primary); margin-left:6px;" id="letterNotifyTitle"></span>
+                <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">小树给你写了一封信，点击查看 →</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="action-cards">
+        <a href="/checkin" class="action-card">
+            <span class="ac-icon">✍️</span>
+            <span class="ac-title">情绪打卡</span>
+            <span class="ac-desc">记录今日心情</span>
+        </a>
+        <a href="/letters" class="action-card">
+            <span class="ac-icon">💌</span>
+            <span class="ac-title">我的信件</span>
+            <span class="ac-desc">小树写给你的信</span>
+        </a>
+        <a href="/trends" class="action-card">
+            <span class="ac-icon">📈</span>
+            <span class="ac-title">趋势分析</span>
+            <span class="ac-desc">情绪变化趋势</span>
+        </a>
+        <a href="/assessment" class="action-card">
+            <span class="ac-icon">🧠</span>
+            <span class="ac-title">心理评估</span>
+            <span class="ac-desc">MSF-XGB 分析</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    function spawnParticles() {
+        const container = document.getElementById('treeParticles');
+        if (!container) return;
+        let html = '';
+        for (let i = 0; i < 14; i++) {
+            const angle = Math.random() * 360;
+            const dist = 50 + Math.random() * 55;
+            const x = Math.cos(angle * Math.PI / 180) * dist;
+            const y = Math.sin(angle * Math.PI / 180) * dist;
+            const delay = Math.random() * 3;
+            const size = 4 + Math.random() * 7;
+            html += '<div class="tree-particle" style="--px:' + x + 'px;--py:' + y + 'px;width:' + size + 'px;height:' + size + 'px;animation-delay:' + delay + 's;left:50%;top:50%;"></div>';
+        }
+        container.innerHTML = html;
+    }
+
+    async function loadPageData() {
+        try {
+            const [userRes, treeRes, letterRes] = await Promise.all([
+                fetch('/api/user/info'),
+                fetch('/api/tree/info'),
+                fetch('/api/letters')
+            ]);
+            const u = await userRes.json();
+            const t = await treeRes.json();
+            const letters = await letterRes.json();
+            document.getElementById('nickname').textContent = u.nickname;
+            document.getElementById('homeLevel').textContent = t.level;
+            document.getElementById('homeExp').textContent = t.exp;
+            document.getElementById('homeHealth').textContent = t.health;
+            document.getElementById('progressFill').style.width = t.exp + '%';
+            document.getElementById('expLabel').textContent = t.exp + ' / 100';
+
+            if (letters && letters.length > 0) {
+                const notif = document.getElementById('letterNotify');
+                if (notif) {
+                    notif.style.display = 'block';
+                    document.getElementById('letterNotifyTitle').textContent = letters[0].title;
+                }
+            }
+
+            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
+            const e = t.level <= 10 ? treeEmojis[Math.max(0, t.level - 1)] : '🌲';
+            document.getElementById('treeEmoji').lastChild.textContent = e;
+        } catch (e) { console.error(e); }
+    }
+
+    spawnParticles();
+    loadPageData();
+</script>
+{% endblock %}

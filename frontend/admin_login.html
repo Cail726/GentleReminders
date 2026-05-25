@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}管理员登录 - Gentle Reminders{% endblock %}
+{% block body_attrs %} class="no-nav"{% endblock %}
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card admin-auth">
+        <div class="brand-area">
+            <div class="brand-icon">🛡️</div>
+            <h1>管理后台</h1>
+            <p class="subtitle">Gentle Reminders · 仅限授权人员</p>
+        </div>
+        <div class="form-group">
+            <label>管理员账号</label>
+            <input type="text" id="username" placeholder="请输入管理员账号" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label>管理员密码</label>
+            <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAdminLogin()">
+        </div>
+        <button class="btn btn-primary ripple" onclick="handleAdminLogin()" style="width:100%;padding:14px;font-size:16px;margin-top:8px;background:#1E3A5F;">登 录</button>
+        <div class="switch-tip">
+            <a href="/login">← 返回学生端登录</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    async function handleAdminLogin() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        if (!username || !password) { GR.toast('请填写完整的账号和密码', 'error'); return; }
+        try {
+            const form = new FormData();
+            form.append('username', username);
+            form.append('password', password);
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                body: form
+            });
+            const data = await res.json();
+            if (data.code === 200) { window.location.href = '/admin/index'; }
+            else if (data.code === 301) { window.location.href = data.redirect; }
+            else { GR.toast(data.msg || '登录失败', 'error'); }
+        } catch (e) { GR.toast('网络异常，请检查服务是否正常', 'error'); }
+    }
+</script>
+{% endblock %}

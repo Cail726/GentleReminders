@@ -1,0 +1,214 @@
+{% extends "base_student.html" %}
+{% block title %}趋势分析 - Gentle Reminders{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
+{% block page_css %}
+<style>
+    .trends-container { max-width: 960px; margin: 0 auto; }
+
+    .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .mini-stat {
+        background: var(--bg-card); padding: 20px 16px; border-radius: var(--radius);
+        text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+        transition: all var(--fast);
+    }
+    .mini-stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .mini-stat .stat-icon { font-size: 24px; margin-bottom: 6px; }
+    .mini-stat .stat-value { font-size: 26px; font-weight: 800; color: var(--primary); }
+    .mini-stat .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .chart-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-panel {
+        background: var(--bg-card); padding: 20px; border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+    }
+    .chart-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .chart-panel .chart-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .chart-box-inner { width: 100%; height: 360px; }
+
+    .week-card {
+        background: var(--bg-card); padding: 22px 24px; border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+    }
+    .week-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+    .week-stats { display: flex; gap: 32px; }
+    .week-stat { text-align: center; }
+    .week-stat .wv { font-size: 30px; font-weight: 800; }
+    .week-stat .wl { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .week-stat.good .wv { color: #4ECDC4; }
+    .week-stat.warn .wv { color: var(--accent); }
+
+    .mood-bar { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
+    .mood-bar-fill { height: 8px; border-radius: 4px; transition: width 0.6s var(--ease); }
+    .mood-bar-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; min-width: 36px; }
+    .mood-bar-count { font-size: 12px; color: var(--text-muted); min-width: 28px; text-align: right; }
+
+    @media (max-width: 768px) {
+        .summary-cards { grid-template-columns: repeat(2, 1fr); }
+        .chart-row { grid-template-columns: 1fr; }
+        .chart-box-inner { height: 280px; }
+        .week-stats { gap: 20px; flex-wrap: wrap; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container trends-container">
+    <h1 class="page-title">📈 情绪趋势分析</h1>
+    <p class="page-subtitle">观察你的情绪变化，更好地了解自己</p>
+
+    <div id="emptyState" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:56px;margin-bottom:12px;">📝</div>
+            <h3 style="margin-bottom:8px;">还没有打卡记录</h3>
+            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">去情绪打卡积累数据后，这里将展示你的情绪变化趋势</p>
+            <a href="/checkin" class="btn btn-primary ripple">去打卡</a>
+        </div>
+    </div>
+
+    <div id="dataArea" style="display:none;">
+        <div class="summary-cards" id="summaryCards"></div>
+        <div class="chart-row">
+            <div class="chart-panel">
+                <h3>📊 情绪变化趋势</h3>
+                <p class="chart-subtitle">每日情绪均分 · 分数越高状态越好</p>
+                <div class="chart-box-inner" id="trendChart"></div>
+            </div>
+            <div class="chart-panel">
+                <h3>🎯 情绪分布</h3>
+                <p class="chart-subtitle">各情绪类型占比</p>
+                <div class="chart-box-inner" id="pieChart"></div>
+            </div>
+        </div>
+        <div class="week-card" id="weekCard"></div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    const moodScore = {'开心':5,'放松':4,'平静':3,'低落':2,'焦虑':1,'疲惫':1};
+    const emoColors = GR.EMO_COLORS;
+    let trendData = null;
+
+    async function initPage() {
+        const r = await fetch('/api/trends/emotion');
+        trendData = await r.json();
+        if (trendData.total_checkins === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+        } else {
+            document.getElementById('dataArea').style.display = 'block';
+            renderSummary();
+            setTimeout(() => { renderTrendChart(); renderPieChart(); }, 150);
+            renderWeekCard();
+        }
+    }
+
+    function renderSummary() {
+        const d = trendData;
+        const cards = [
+            {icon:'📝', value:d.total_checkins, label:'累计打卡'},
+            {icon:'📊', value:d.total_avg, label:'平均心情分'},
+            {icon:'🔥', value:d.streak + '天', label:'连续打卡'},
+            {icon:'🏷️', value:d.top_emotion, label:'最常见情绪'},
+        ];
+        document.getElementById('summaryCards').innerHTML = cards.map(c =>
+            '<div class="mini-stat"><div class="stat-icon">' + c.icon + '</div><div class="stat-value">' + c.value + '</div><div class="stat-label">' + c.label + '</div></div>'
+        ).join('');
+    }
+
+    function renderTrendChart() {
+        const dom = document.getElementById('trendChart');
+        const chart = echarts.init(dom);
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const dates = trendData.daily_avg.map(p => p.date);
+        const scores = trendData.daily_avg.map(p => p.score);
+
+        chart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                formatter: function(params) {
+                    const v = params[0].value;
+                    let label = '';
+                    if (v >= 4.5) label = '开心';
+                    else if (v >= 3.5) label = '放松';
+                    else if (v >= 2.5) label = '平静';
+                    else if (v >= 1.5) label = '低落/焦虑';
+                    else label = '疲惫';
+                    return params[0].axisValue + '<br/>心情均分: <strong>' + v + '</strong> (' + label + ')';
+                }
+            },
+            grid: { left: 40, right: 16, top: 12, bottom: 28 },
+            xAxis: {
+                type: 'category', data: dates, boundaryGap: false,
+                axisLabel: { color: isDark ? '#A0A8B8' : '#6B7280', fontSize: 11, rotate: dates.length > 14 ? 45 : 0 },
+                axisLine: { lineStyle: { color: isDark ? '#3A3F4A' : '#E5E7EB' } }
+            },
+            yAxis: {
+                type: 'value', min: 0.5, max: 5.5, interval: 1,
+                axisLabel: {
+                    color: isDark ? '#A0A8B8' : '#6B7280',
+                    formatter: function(v) {
+                        const map = {1:'疲惫',2:'低落',3:'平静',4:'放松',5:'开心'};
+                        return map[v] || '';
+                    }
+                },
+                splitLine: { lineStyle: { color: isDark ? '#333840' : '#F0F2F5' } }
+            },
+            series: [{
+                type: 'line', data: scores, smooth: true,
+                lineStyle: { color: '#5EB3A3', width: 2.5 },
+                itemStyle: { color: '#5EB3A3' },
+                areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(94,179,163,0.25)' },
+                    { offset: 1, color: 'rgba(94,179,163,0.02)' }
+                ])},
+                markLine: {
+                    silent: true,
+                    data: [{ yAxis: 3, label: { formatter: '平静线', fontSize: 11 }, lineStyle: { color: '#9CA3AF', type: 'dashed' } }]
+                }
+            }]
+        });
+        window.addEventListener('resize', () => chart.resize());
+    }
+
+    function renderPieChart() {
+        const dom = document.getElementById('pieChart');
+        const chart = echarts.init(dom);
+        const dist = trendData.distribution;
+        const data = Object.entries(dist).map(([k, v]) => ({ name: k, value: v, itemStyle: { color: emoColors[k] || '#94a3b8' } }));
+
+        chart.setOption({
+            tooltip: { trigger: 'item', formatter: '{b}: {c} 次 ({d}%)' },
+            series: [{
+                type: 'pie', radius: ['50%', '78%'], center: ['50%', '48%'], data: data,
+                label: { formatter: '{b}\n{d}%', fontSize: 12 },
+                emphasis: { label: { fontSize: 16, fontWeight: 'bold' } }
+            }]
+        });
+        window.addEventListener('resize', () => chart.resize());
+    }
+
+    function renderWeekCard() {
+        const d = trendData;
+        const levelColor = d.week_avg >= 3.5 ? '#4ECDC4' : d.week_avg >= 2.5 ? '#F0A050' : '#E07B7B';
+        let barsHtml = '';
+        const sorted = Object.entries(d.distribution).sort((a, b) => b[1] - a[1]);
+        const total = d.total_checkins || 1;
+        sorted.forEach(([emo, cnt]) => {
+            const pct = (cnt / total * 100).toFixed(0);
+            barsHtml += '<div class="mood-bar"><span class="mood-bar-label">' + emo + '</span><div class="mood-bar-fill" style="width:' + pct + '%;background:' + (emoColors[emo]||'#94a3b8') + ';"></div><span class="mood-bar-count">' + cnt + '次</span></div>';
+        });
+
+        document.getElementById('weekCard').innerHTML =
+            '<h3>📅 近7天概览</h3>' +
+            '<div class="week-stats">' +
+            '<div class="week-stat good"><div class="wv">' + d.week_count + '</div><div class="wl">近7天打卡</div></div>' +
+            '<div class="week-stat"><div class="wv" style="color:' + levelColor + ';">' + d.week_avg + '</div><div class="wl">近7天均分</div></div>' +
+            '<div class="week-stat"><div class="wv">' + d.streak + '天</div><div class="wl">当前连续</div></div>' +
+            '</div>' +
+            '<div style="margin-top:18px;"><p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">情绪分布占比</p>' + barsHtml + '</div>';
+    }
+
+    initPage();
+</script>
+{% endblock %}

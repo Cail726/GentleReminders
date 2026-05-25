@@ -1,0 +1,307 @@
+{% extends "base_student.html" %}
+{% block title %}心理评估 - Gentle Reminders{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
+{% block page_css %}
+<style>
+    .assess-container { max-width: 900px; margin: 0 auto; }
+
+    .confidence-badge {
+        display: inline-block; padding: 4px 12px; border-radius: 12px;
+        font-size: 12px; font-weight: 600; color: #fff;
+    }
+    .confidence-badge.high { background: #4ECDC4; }
+    .confidence-badge.medium { background: #7EB8DA; }
+    .confidence-badge.low { background: #F0A050; }
+    .confidence-badge.insufficient { background: #E07B7B; }
+
+    .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    .score-card {
+        background: var(--bg-card); padding: 18px 12px; border-radius: var(--radius);
+        text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+        border-top: 4px solid #ccc;
+    }
+    .score-card.green { border-top-color: #4ECDC4; }
+    .score-card.yellow { border-top-color: #F0A050; }
+    .score-card.orange { border-top-color: #E07B7B; }
+    .score-card.red { border-top-color: #D94444; }
+    .score-card .sc-name { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .score-card .sc-value { font-size: 28px; font-weight: 800; }
+    .score-card .sc-label { font-size: 11px; color: var(--text-muted); }
+    .score-card.green .sc-value { color: #4ECDC4; }
+    .score-card.yellow .sc-value { color: #F0A050; }
+    .score-card.orange .sc-value { color: #E07B7B; }
+    .score-card.red .sc-value { color: #D94444; }
+
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-panel {
+        background: var(--bg-card); padding: 20px; border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+    }
+    .chart-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .chart-panel .chart-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .chart-inner { width: 100%; height: 340px; }
+
+    .suggestions-list { list-style: none; padding: 0; }
+    .suggestions-list li {
+        padding: 12px 16px; margin-bottom: 8px; background: var(--brand-50);
+        border-radius: var(--radius-sm); font-size: 14px; color: var(--text);
+        line-height: 1.7; border-left: 3px solid var(--secondary);
+    }
+
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .feature-tag {
+        padding: 5px 14px; border-radius: 16px; font-size: 12px;
+        background: var(--bg-input); color: var(--text-secondary);
+        border: 1px solid var(--border-light);
+    }
+
+    @media (max-width: 768px) {
+        .score-grid { grid-template-columns: repeat(2, 1fr); }
+        .score-grid .score-card:last-child { grid-column: span 2; }
+        .chart-row { grid-template-columns: 1fr; }
+        .chart-inner { height: 280px; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container assess-container">
+    <h1 class="page-title">🧠 MSF-XGB 心理评估</h1>
+    <p class="page-subtitle">多源特征融合 · XGBoost 模型 · 综合心理健康指数</p>
+
+    <div class="notice-box" style="margin-bottom:24px;">
+        ⚠️ <strong>重要提示：</strong>本评估结果由机器学习模型基于你的打卡记录、日记内容和量表数据生成，<strong>仅用于自我了解和状态描述，不构成任何医学或心理学诊断</strong>。数据越充分，评估越准确。
+    </div>
+
+    <div id="loadingArea" style="display:none;text-align:center;padding:40px;">
+        <div class="tree-display" style="margin:0 auto 20px;">⏳</div>
+        <p style="color:var(--text-secondary);">MSF-XGBoost 模型正在分析你的多源数据...</p>
+        <div class="progress-bar" style="max-width:300px;margin:12px auto 0;">
+            <div class="progress-fill" style="width:60%;animation: shimmer 1.5s infinite;"></div>
+        </div>
+    </div>
+
+    <div id="emptyArea" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:56px;margin-bottom:12px;">🔬</div>
+            <h3 style="margin-bottom:8px;">尚未进行心理评估</h3>
+            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">点击下方按钮，MSF-XGBoost 模型将融合你的打卡记录、<br>日记内容和量表数据进行综合分析。</p>
+            <button class="btn btn-primary btn-lg ripple" onclick="runAssessment()">🚀 开始评估</button>
+        </div>
+        <div id="historyCard" style="display:none;margin-top:20px;"></div>
+    </div>
+
+    <div id="resultArea" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+            <div>
+                <span style="font-size:13px;color:var(--text-muted);">数据置信度：</span>
+                <span class="confidence-badge" id="confBadge">---</span>
+            </div>
+            <div class="feature-tags" id="featureTags"></div>
+            <span style="font-size:12px;color:var(--text-muted);" id="assessTime"></span>
+        </div>
+
+        <div class="score-grid" id="scoreCards"></div>
+
+        <div class="chart-row">
+            <div class="chart-panel">
+                <h3>📊 维度得分雷达图</h3>
+                <p class="chart-subtitle">各维度综合评分对比</p>
+                <div class="chart-inner" id="radarChart"></div>
+            </div>
+            <div class="chart-panel">
+                <h3>📈 得分柱状图</h3>
+                <p class="chart-subtitle">含参考区间（75+ 良好 / 55-75 一般 / 35-55 偏低）</p>
+                <div class="chart-inner" id="barChart"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>💡 个性化建议</h3>
+            <ul class="suggestions-list" id="suggestionsList"></ul>
+        </div>
+
+        <div class="btn-group" style="margin-top:20px;">
+            <button class="btn btn-primary ripple" onclick="runAssessment()">🔄 重新评估</button>
+            <button class="btn btn-ghost ripple" onclick="showHistoryOnly()">📋 查看历史</button>
+            <a href="/" class="btn btn-ghost ripple">返回首页</a>
+        </div>
+
+        <div id="historyCard2" style="display:none;margin-top:20px;"></div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    const DIM_LABELS = {
+        'emotional_stability':'情绪稳定性','social_engagement':'社交参与度',
+        'stress_resilience':'压力承受力','sleep_quality':'睡眠质量','overall_wellbeing':'综合心理健康'
+    };
+    const LEVEL_COLORS = {green:'#4ECDC4', yellow:'#F0A050', orange:'#E07B7B', red:'#D94444'};
+    const CONF_LABELS = {high:'数据充分', medium:'数据适中', low:'数据较少', insufficient:'数据不足'};
+
+    async function initPage() {
+        const r = await fetch('/api/model/history');
+        const history = await r.json();
+        if (history.length > 0) {
+            showResult(history[0]);
+        } else {
+            showEmpty(false);
+        }
+    }
+
+    function showEmpty(withHistory) {
+        document.getElementById('loadingArea').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('emptyArea').style.display = 'block';
+        if (withHistory) loadHistory('historyCard');
+    }
+
+    function showLoading() {
+        document.getElementById('emptyArea').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('loadingArea').style.display = 'block';
+    }
+
+    async function runAssessment() {
+        showLoading();
+        try {
+            const r = await fetch('/api/model/assess', { method: 'POST' });
+            const result = await r.json();
+            showResult(result);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {
+            GR.toast('评估失败，请重试', 'error');
+            initPage();
+        }
+    }
+
+    function showResult(result) {
+        document.getElementById('loadingArea').style.display = 'none';
+        document.getElementById('emptyArea').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'block';
+
+        const conf = result.confidence || result.data_confidence || 'low';
+        const badge = document.getElementById('confBadge');
+        badge.textContent = CONF_LABELS[conf] || conf;
+        badge.className = 'confidence-badge ' + conf;
+
+        document.getElementById('assessTime').textContent = result.time || '';
+
+        const fs = result.feature_summary || {};
+        document.getElementById('featureTags').innerHTML =
+            '<span class="feature-tag">打卡 ' + (fs.total_checkins||0) + ' 次</span>' +
+            '<span class="feature-tag">均分 ' + (fs.avg_mood_score||0) + '</span>' +
+            '<span class="feature-tag">连续 ' + (fs.current_streak||0) + ' 天</span>' +
+            '<span class="feature-tag">' + (fs.has_scale_data ? '有量表数据' : '无量表数据') + '</span>';
+
+        const dims = result.dimension_scores || {};
+        let cardsHtml = '';
+        for (const [key, info] of Object.entries(dims)) {
+            const s = info.score || info;
+            const lvl = info.level || 'yellow';
+            const lbl = info.label || DIM_LABELS[key] || key;
+            cardsHtml += '<div class="score-card ' + lvl + '"><div class="sc-name">' + lbl + '</div><div class="sc-value">' + s + '</div><div class="sc-label">/ 100</div></div>';
+        }
+        document.getElementById('scoreCards').innerHTML = cardsHtml;
+
+        setTimeout(() => {
+            renderRadar(dims);
+            renderBar(dims);
+        }, 150);
+
+        const suggestions = result.suggestions || [];
+        document.getElementById('suggestionsList').innerHTML = suggestions.map(s => '<li>' + s + '</li>').join('');
+
+        document.getElementById('historyCard2').style.display = 'none';
+    }
+
+    function renderRadar(dims) {
+        const dom = document.getElementById('radarChart');
+        if (window._radar) window._radar.dispose();
+        const chart = echarts.init(dom); window._radar = chart;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const keys = Object.keys(dims);
+        const labels = keys.map(k => DIM_LABELS[k] || k);
+        const values = keys.map(k => typeof dims[k] === 'object' ? dims[k].score : dims[k]);
+
+        chart.setOption({
+            tooltip: { trigger: 'item' },
+            radar: {
+                center: ['50%', '50%'], radius: '65%',
+                indicator: labels.map(l => ({ name: l, max: 100 })),
+                axisName: { color: isDark ? '#A0A8B8' : '#6B7280', fontSize: 12 },
+                splitArea: { areaStyle: { color: [isDark ? '#252830' : '#fff', isDark ? '#2A2D35' : '#F5F9FC'] } }
+            },
+            series: [{
+                type: 'radar',
+                data: [{ value: values, name: '评估得分', areaStyle: { color: 'rgba(74,144,217,0.2)' }, lineStyle: { color: '#4A90D9', width: 2 }, itemStyle: { color: '#4A90D9' } }]
+            }]
+        });
+        window.addEventListener('resize', () => chart.resize());
+    }
+
+    function renderBar(dims) {
+        const dom = document.getElementById('barChart');
+        if (window._bar) window._bar.dispose();
+        const chart = echarts.init(dom); window._bar = chart;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const keys = Object.keys(dims);
+        const labels = keys.map(k => DIM_LABELS[k] || k);
+        const values = keys.map(k => typeof dims[k] === 'object' ? dims[k].score : dims[k]);
+
+        chart.setOption({
+            tooltip: { trigger: 'axis' },
+            grid: { left: 100, right: 20, top: 10, bottom: 20 },
+            xAxis: { type: 'value', max: 100, axisLabel: { color: isDark ? '#A0A8B8' : '#6B7280' }, splitLine: { lineStyle: { color: isDark ? '#333840' : '#F0F2F5' } } },
+            yAxis: { type: 'category', data: labels.reverse(), axisLabel: { color: isDark ? '#A0A8B8' : '#6B7280', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                type: 'bar', data: values.reverse().map(v => ({
+                    value: v,
+                    itemStyle: { color: v >= 75 ? '#4ECDC4' : v >= 55 ? '#7EB8DA' : v >= 35 ? '#F0A050' : '#E07B7B', borderRadius: [0, 6, 6, 0] }
+                })), barWidth: 20,
+                markLine: { silent: true, symbol: 'none', data: [
+                    { xAxis: 75, lineStyle: { color: '#4ECDC4', type: 'dashed', width: 1 }, label: { formatter: '良好', fontSize: 10 } },
+                    { xAxis: 55, lineStyle: { color: '#9CA3AF', type: 'dashed', width: 1 }, label: { formatter: '一般', fontSize: 10 } }
+                ]}
+            }]
+        });
+        window.addEventListener('resize', () => chart.resize());
+    }
+
+    async function showHistoryOnly() {
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('historyCard2').style.display = 'block';
+        await loadHistory('historyCard2');
+        window.scrollTo({ top: document.getElementById('historyCard2').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    async function loadHistory(containerId) {
+        const r = await fetch('/api/model/history');
+        const history = await r.json();
+        if (history.length <= 1) {
+            document.getElementById(containerId).innerHTML = '';
+            return;
+        }
+        let html = '<div class="card"><h3>📋 历史评估记录</h3><div class="data-table-wrap"><table class="data-table"><thead><tr><th>时间</th><th>综合得分</th><th>置信度</th><th>操作</th></tr></thead><tbody>';
+        history.forEach((h, i) => {
+            if (i === 0 && containerId === 'historyCard2') return;
+            const dims = h.dimension_scores || {};
+            const overall = dims.overall_wellbeing || {};
+            const score = typeof overall === 'object' ? (overall.score || '--') : (overall || '--');
+            html += '<tr><td>' + h.time + '</td><td><strong>' + score + '</strong></td><td>' + (CONF_LABELS[h.confidence] || h.confidence) + '</td><td><a href="javascript:void(0)" onclick="viewHistory(' + h.id + ')" style="color:var(--primary);">查看</a></td></tr>';
+        });
+        html += '</tbody></table></div></div>';
+        document.getElementById(containerId).innerHTML = html;
+    }
+
+    async function viewHistory(id) {
+        showLoading();
+        const r = await fetch('/api/model/result/' + id);
+        showResult(await r.json());
+    }
+
+    initPage();
+</script>
+{% endblock %}

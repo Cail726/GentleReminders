@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Gentle Reminders{% endblock %}
+{% block body %}
+{% set active = active_page|default('') %}
+<nav class="navbar">
+    <a href="/" class="brand">
+        <span class="logo-icon">🌱</span>Gentle Reminders
+    </a>
+    <div class="nav-links">
+        <a href="/"{% if active == 'index' %} class="active"{% endif %}>首页</a>
+        <a href="/checkin"{% if active == 'checkin' %} class="active"{% endif %}>情绪打卡</a>
+        <a href="/scale"{% if active == 'scale' %} class="active"{% endif %}>心理量表</a>
+        <a href="/trends"{% if active == 'trends' %} class="active"{% endif %}>趋势分析</a>
+        <a href="/assessment" class="hide-mobile{% if active == 'assessment' %} active{% endif %}">心理评估</a>
+        <a href="/profile"{% if active == 'profile' %} class="active"{% endif %}>个人中心</a>
+        <a href="/letters"{% if active == 'letters' %} class="active"{% endif %}>💌 信件</a>
+        <button class="theme-toggle" onclick="GR.toggleTheme()" title="切换暗色模式">☽</button>
+        <button onclick="GR.logout()">退出</button>
+    </div>
+</nav>
+{% block content %}{% endblock %}
+{% endblock %}

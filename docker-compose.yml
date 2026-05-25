@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: gentle-reminders
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/backend/data
+      - ./frontend:/app/frontend
+      - ./static:/app/static
+    environment:
+      - GR_SESSION_SECRET=${GR_SESSION_SECRET:-gr-docker-default}
+      - GR_ADMIN_PASSWORD=${GR_ADMIN_PASSWORD:-gr2026safe}
+    restart: unless-stopped
