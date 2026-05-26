@@ -6,6 +6,7 @@
 {% block page_css %}
 <style>
     .assess-container { max-width: 900px; margin: 0 auto; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
     .confidence-badge {
         display: inline-block; padding: 4px 12px; border-radius: 12px;
@@ -67,15 +68,15 @@
 {% endblock %}
 {% block content %}
 <div class="page-container assess-container">
-    <h1 class="page-title">🧠 MSF-XGB 心理评估</h1>
+    <h1 class="page-title"><i data-lucide="brain" style="width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>MSF-XGB 心理评估</h1>
     <p class="page-subtitle">多源特征融合 · XGBoost 模型 · 综合心理健康指数</p>
 
     <div class="notice-box" style="margin-bottom:24px;">
-        ⚠️ <strong>重要提示：</strong>本评估结果由机器学习模型基于你的打卡记录、日记内容和量表数据生成，<strong>仅用于自我了解和状态描述，不构成任何医学或心理学诊断</strong>。数据越充分，评估越准确。
+        <i data-lucide="alert-triangle" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> <strong>重要提示：</strong>本评估结果由机器学习模型基于你的打卡记录、日记内容和量表数据生成，<strong>仅用于自我了解和状态描述，不构成任何医学或心理学诊断</strong>。数据越充分，评估越准确。
     </div>
 
     <div id="loadingArea" style="display:none;text-align:center;padding:40px;">
-        <div class="tree-display" style="margin:0 auto 20px;">⏳</div>
+        <div class="tree-display" style="margin:0 auto 20px;"><i data-lucide="loader-2" style="width:48px;height:48px;animation:spin 1.5s linear infinite;"></i></div>
         <p style="color:var(--text-secondary);">MSF-XGBoost 模型正在分析你的多源数据...</p>
         <div class="progress-bar" style="max-width:300px;margin:12px auto 0;">
             <div class="progress-fill" style="width:60%;animation: shimmer 1.5s infinite;"></div>
@@ -84,10 +85,10 @@
 
     <div id="emptyArea" style="display:none;">
         <div class="card" style="text-align:center;">
-            <div style="font-size:56px;margin-bottom:12px;">🔬</div>
+            <div style="font-size:56px;margin-bottom:12px;"><i data-lucide="microscope" style="width:56px;height:56px;"></i></div>
             <h3 style="margin-bottom:8px;">尚未进行心理评估</h3>
             <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">点击下方按钮，MSF-XGBoost 模型将融合你的打卡记录、<br>日记内容和量表数据进行综合分析。</p>
-            <button class="btn btn-primary btn-lg ripple" onclick="runAssessment()">🚀 开始评估</button>
+            <button class="btn btn-primary btn-lg ripple" onclick="runAssessment()"><i data-lucide="rocket" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>开始评估</button>
         </div>
         <div id="historyCard" style="display:none;margin-top:20px;"></div>
     </div>
@@ -106,25 +107,25 @@
 
         <div class="chart-row">
             <div class="chart-panel">
-                <h3>📊 维度得分雷达图</h3>
+                <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>维度得分雷达图</h3>
                 <p class="chart-subtitle">各维度综合评分对比</p>
                 <div class="chart-inner" id="radarChart"></div>
             </div>
             <div class="chart-panel">
-                <h3>📈 得分柱状图</h3>
+                <h3><i data-lucide="trending-up" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>得分柱状图</h3>
                 <p class="chart-subtitle">含参考区间（75+ 良好 / 55-75 一般 / 35-55 偏低）</p>
                 <div class="chart-inner" id="barChart"></div>
             </div>
         </div>
 
         <div class="card">
-            <h3>💡 个性化建议</h3>
+            <h3><i data-lucide="lightbulb" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>个性化建议</h3>
             <ul class="suggestions-list" id="suggestionsList"></ul>
         </div>
 
         <div class="btn-group" style="margin-top:20px;">
-            <button class="btn btn-primary ripple" onclick="runAssessment()">🔄 重新评估</button>
-            <button class="btn btn-ghost ripple" onclick="showHistoryOnly()">📋 查看历史</button>
+            <button class="btn btn-primary ripple" onclick="runAssessment()"><i data-lucide="refresh-cw" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>重新评估</button>
+            <button class="btn btn-ghost ripple" onclick="showHistoryOnly()"><i data-lucide="clipboard-list" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>查看历史</button>
             <a href="/" class="btn btn-ghost ripple">返回首页</a>
         </div>
 
@@ -155,6 +156,7 @@
         document.getElementById('loadingArea').style.display = 'none';
         document.getElementById('resultArea').style.display = 'none';
         document.getElementById('emptyArea').style.display = 'block';
+        if (window.lucide) window.lucide.createIcons();
         if (withHistory) loadHistory('historyCard');
     }
 
@@ -212,9 +214,10 @@
         }, 150);
 
         const suggestions = result.suggestions || [];
-        document.getElementById('suggestionsList').innerHTML = suggestions.map(s => '<li>' + s + '</li>').join('');
+        document.getElementById('suggestionsList').innerHTML = suggestions.map(s => '<li>' + GR.escHtml(s) + '</li>').join('');
 
         document.getElementById('historyCard2').style.display = 'none';
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function renderRadar(dims) {
@@ -284,7 +287,7 @@
             document.getElementById(containerId).innerHTML = '';
             return;
         }
-        let html = '<div class="card"><h3>📋 历史评估记录</h3><div class="data-table-wrap"><table class="data-table"><thead><tr><th>时间</th><th>综合得分</th><th>置信度</th><th>操作</th></tr></thead><tbody>';
+        let html = '<div class="card"><h3><i data-lucide="clipboard-list" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>历史评估记录</h3><div class="data-table-wrap"><table class="data-table"><thead><tr><th>时间</th><th>综合得分</th><th>置信度</th><th>操作</th></tr></thead><tbody>';
         history.forEach((h, i) => {
             if (i === 0 && containerId === 'historyCard2') return;
             const dims = h.dimension_scores || {};
@@ -294,6 +297,7 @@
         });
         html += '</tbody></table></div></div>';
         document.getElementById(containerId).innerHTML = html;
+        if (window.lucide) window.lucide.createIcons();
     }
 
     async function viewHistory(id) {

@@ -93,19 +93,31 @@ def _generate_synthetic_data(n_samples=2000):
             scale_anxiety = scale_mood = scale_social = scale_stress = scale_sleep = 0
             scale_total = scale_count = scale_max = scale_min = scale_range = 0.0
 
-        # 组装特征向量
-        X[i] = [
-            total_checkins, avg_mood, mood_var, mood_std,
-            emotion_div, neg_ratio, pos_ratio,
-            recent_avg, trend_delta, regularity,
-            avg_gap, streak, days_since, weekly_freq,
-            total_diary, avg_char, total_chars,
-            avg_pos, avg_neg, avg_polarity,
-            avg_intensity, dominant_ratio, negation_r,
-            lex_div, text_engage,
-            scale_anxiety, scale_mood, scale_social, scale_stress, scale_sleep,
-            scale_total, scale_count, scale_max, scale_min, scale_range,
-        ]
+        # 组装特征向量 — 通过 dict 保证与 FEATURE_NAMES 严格对齐
+        feat = {
+            "total_checkins": total_checkins, "avg_mood_score": avg_mood,
+            "mood_variance": mood_var, "mood_std": mood_std,
+            "emotion_diversity": emotion_div, "negative_ratio": neg_ratio,
+            "positive_ratio": pos_ratio, "recent_avg_7d": recent_avg,
+            "trend_delta": trend_delta, "checkin_regularity": regularity,
+            "avg_gap_days": avg_gap, "current_streak": streak,
+            "days_since_last": days_since, "weekly_frequency": weekly_freq,
+            "total_diary_entries": total_diary, "avg_char_count": avg_char,
+            "total_chars": total_chars,
+            "avg_positive_score": avg_pos, "avg_negative_score": avg_neg,
+            "avg_sentiment_polarity": avg_polarity,
+            "avg_emotion_intensity": avg_intensity,
+            "dominant_emotion_ratio": dominant_ratio,
+            "negation_ratio": negation_r, "avg_lexical_diversity": lex_div,
+            "text_engagement_score": text_engage,
+            "scale_焦虑感受": scale_anxiety, "scale_情绪状态": scale_mood,
+            "scale_社交状态": scale_social, "scale_压力与疲惫": scale_stress,
+            "scale_睡眠质量": scale_sleep,
+            "scale_total": scale_total, "scale_count": scale_count,
+            "scale_max_dim": scale_max, "scale_min_dim": scale_min,
+            "scale_range": scale_range,
+        }
+        X[i] = [feat[name] for name in FEATURE_NAMES]
 
         # --- 启发式标签生成 ---
         emo_stab = 50.0
@@ -171,14 +183,19 @@ def _generate_synthetic_data(n_samples=2000):
 
 
 def train_model(force=False):
-    """训练 MSF-XGBoost 模型"""
+    """训练 MSF-XGBoost 模型（含 train/test split + 评估指标）"""
     if not force and os.path.exists(MODEL_PATH):
         return
 
     print("[MSF-XGB] 生成合成训练数据...")
     X, Y = _generate_synthetic_data(2000)
 
-    print(f"[MSF-XGB] 训练多输出回归模型 (特征数={X.shape[1]}, 样本数={X.shape[0]})...")
+    # 80/20 train/test split
+    split_idx = int(len(X) * 0.8)
+    X_train, X_test = X[:split_idx], X[split_idx:]
+    Y_train, Y_test = Y[:split_idx], Y[split_idx:]
+
+    print(f"[MSF-XGB] 训练多输出回归模型 (特征数={X.shape[1]}, 训练={X_train.shape[0]}, 测试={X_test.shape[0]})...")
     base_model = XGBRegressor(
         n_estimators=100,
         max_depth=5,
@@ -189,7 +206,17 @@ def train_model(force=False):
         verbosity=0,
     )
     model = MultiOutputRegressor(base_model)
-    model.fit(X, Y)
+    model.fit(X_train, Y_train)
+
+    # 评估
+    Y_pred = model.predict(X_test)
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+    print("[MSF-XGB] 测试集评估结果:")
+    for i, dim in enumerate(OUTPUT_DIMENSIONS):
+        mae = mean_absolute_error(Y_test[:, i], Y_pred[:, i])
+        rmse = np.sqrt(mean_squared_error(Y_test[:, i], Y_pred[:, i]))
+        r2 = r2_score(Y_test[:, i], Y_pred[:, i])
+        print(f"  {dim}: MAE={mae:.2f}, RMSE={rmse:.2f}, R²={r2:.3f}")
 
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(model, f)

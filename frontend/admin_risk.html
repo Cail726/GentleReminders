@@ -1,70 +1,103 @@
 {% extends "base_admin.html" %}
-{% block title %}情绪风险筛查 - 管理后台{% endblock %}
+{% block title %}风险概况 - 管理后台{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
 {% block content %}
 <div class="page-container wide">
-    <h1 class="page-title" style="color:var(--emo-sad);">⚠️ 情绪风险筛查</h1>
-    <p class="page-subtitle">仅标记低落 / 焦虑 / 疲惫情绪 · 匿名展示 · 不泄露学生身份</p>
+    <h1 class="page-title" style="color:var(--emo-sad);">⚠️ 风险评估概况</h1>
+    <p class="page-subtitle">仅展示群体风险数据分布，不涉及任何个人信息</p>
 
-    <div class="card">
-        <div style="margin-bottom:16px;font-size:14px;color:var(--text-secondary);">
-            风险情绪记录数：<strong style="color:var(--emo-sad);font-size:20px;" id="riskCount">0</strong> 条
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="chart-row">
+        <div class="card">
+            <h3>🎯 风险情绪分布</h3>
+            <div class="chart-box" id="riskPieChart"></div>
         </div>
-
-        <div class="data-table-wrap">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>匿名用户</th>
-                        <th>风险情绪</th>
-                        <th>内心想法</th>
-                        <th>记录时间</th>
-                    </tr>
-                </thead>
-                <tbody id="riskBody">
-                    <tr><td colspan="4" class="empty-state">加载中...</td></tr>
-                </tbody>
-            </table>
+        <div class="card">
+            <h3>📅 近4周风险趋势</h3>
+            <div class="chart-box" id="riskTrendChart"></div>
         </div>
     </div>
 
     <div class="card danger-border">
         <h3 style="color:var(--emo-sad);">⚠️ 重要提示</h3>
         <p style="font-size:14px;color:var(--text-secondary);line-height:1.9;">
-            本页面仅用于辅助识别可能需要关注的学生群体。<br>
+            本页面仅展示群体统计数据，用于整体趋势观察。<br>
             系统<strong>不提供心理诊断</strong>，不替代专业评估。<br>
-            若发现持续高风险标记，建议由专业心理咨询师介入。
+            若风险占比显著上升，建议学校关注整体心理健康氛围。
         </p>
     </div>
 </div>
 {% endblock %}
 {% block page_js %}
 <script>
-    async function loadRiskData() {
-        try {
-            const res = await fetch('/api/admin/risk-user');
-            const data = await res.json();
-            document.getElementById('riskCount').textContent = data.length;
+    let riskPieInst, riskTrendInst;
 
-            if (!data.length) {
-                document.getElementById('riskBody').innerHTML = '<tr><td colspan="4" class="empty-state">✅ 暂无风险记录</td></tr>';
-                return;
-            }
-
-            let html = '';
-            data.forEach(item => {
-                html += '<tr class="risk-row">' +
-                    '<td>' + item.user_anon + '</td>' +
-                    '<td><span class="risk-tag">' + item.emotion + '</span> <span class="risk-badge">风险</span></td>' +
-                    '<td>' + (item.content || '—') + '</td>' +
-                    '<td>' + item.time + '</td></tr>';
-            });
-            document.getElementById('riskBody').innerHTML = html;
-        } catch (e) {
-            document.getElementById('riskBody').innerHTML = '<tr><td colspan="4" class="empty-state">加载失败，请刷新重试</td></tr>';
-        }
+    async function loadData() {
+        const res = await fetch('/api/admin/risk-distribution');
+        const data = await res.json();
+        renderSummary(data);
+        renderRiskPie(data);
+        renderRiskTrend(data);
     }
 
+    function renderSummary(data) {
+        const totalRisk = (data['低落']?.count || 0) + (data['焦虑']?.count || 0) + (data['疲惫']?.count || 0);
+        const totalPct = totalRisk / Math.max(data.total_checkins, 1) * 100;
+        document.getElementById('summaryCards').innerHTML =
+            '<div class="summary-card"><div class="num blue">' + data.total_users + '</div><div class="label">参与用户数</div></div>' +
+            '<div class="summary-card"><div class="num" style="color:#E07B7B;">' + totalRisk + '</div><div class="label">风险标记总次数</div></div>' +
+            '<div class="summary-card"><div class="num" style="color:#E07B7B;">' + totalPct.toFixed(1) + '%</div><div class="label">风险占比</div></div>' +
+            '<div class="summary-card"><div class="num blue">' + data.total_checkins + '</div><div class="label">总打卡数</div></div>';
+    }
+
+    function renderRiskPie(data) {
+        if (!riskPieInst) riskPieInst = echarts.init(document.getElementById('riskPieChart'));
+        const items = [];
+        for (let emo of ['低落','焦虑','疲惫']) {
+            if (data[emo]?.count > 0) items.push({ name: emo, value: data[emo].count });
+        }
+        const colors = { '低落': '#7B9CD0', '焦虑': '#E0A050', '疲惫': '#90B878' };
+        riskPieInst.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'item', formatter: '{b}: {c} 次' },
+            series: [{ type: 'pie', radius: ['40%','68%'], center: ['50%','50%'], data: items,
+                itemStyle: { color: p => colors[p.name] || '#ccc' },
+                label: { fontSize: 13, formatter: '{b}\n{d}%' } }]
+        });
+    }
+
+    function renderRiskTrend(data) {
+        if (!riskTrendInst) riskTrendInst = echarts.init(document.getElementById('riskTrendChart'));
+        const weekly = data.weekly || [];
+        riskTrendInst.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['风险次数', '风险占比(%)'] },
+            xAxis: { type: 'category', data: weekly.map(w => 'W' + w.week.slice(-2)) },
+            yAxis: [
+                { type: 'value', name: '次数', minInterval: 1 },
+                { type: 'value', name: '%', max: 100 }
+            ],
+            series: [
+                { name: '风险次数', type: 'bar', data: weekly.map(w => w.risk),
+                  itemStyle: { borderRadius: [4,4,0,0], color: '#E07B7B' } },
+                { name: '风险占比(%)', type: 'line', yAxisIndex: 1, data: weekly.map(w => w.pct),
+                  lineStyle: { color: '#E0A050' }, itemStyle: { color: '#E0A050' } }
+            ],
+            grid: { top: 40, right: 60, bottom: 40, left: 50 }
+        });
+    }
+
+    GR.onThemeChange(function() {
+        if (riskPieInst) { riskPieInst.dispose(); riskPieInst = null; }
+        if (riskTrendInst) { riskTrendInst.dispose(); riskTrendInst = null; }
+        loadData();
+    });
+
     function handleLogout() { if (confirm('确定要退出管理后台吗？')) window.location.href = '/admin/logout'; }
-    loadRiskData();
+    loadData();
 </script>
 {% endblock %}

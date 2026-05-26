@@ -20,7 +20,7 @@
     .hero-card .welcome-line strong { font-size: 18px; }
 
     .tree-stats-row {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+        text-align: center; margin-bottom: 12px;
     }
     .tree-stat-item {
         background: var(--bg-input); padding: 18px 12px; border-radius: var(--radius-sm);
@@ -29,6 +29,10 @@
     .tree-stat-item .tsi-icon { font-size: 24px; margin-bottom: 4px; }
     .tree-stat-item .tsi-value { font-size: 24px; font-weight: 800; color: var(--primary); }
     .tree-stat-item .tsi-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .stage-hero { font-size: 48px; margin-bottom: 8px; }
+    .stage-hero-name { font-size: 18px; font-weight: 800; color: var(--text); }
+    .stage-hero-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.6; }
 
     .checkin-item {
         display: flex; justify-content: space-between; align-items: center;
@@ -54,27 +58,22 @@
 <div class="page-container profile-container">
     <div class="hero-card">
         <p class="welcome-line">欢迎回来，<strong id="welcomeText">---</strong></p>
-        <div class="tree-stats-row">
-            <div class="tree-stat-item">
-                <div class="tsi-icon">⭐</div>
-                <div class="tsi-value" id="levelText">1</div>
-                <div class="tsi-label">当前等级</div>
-            </div>
-            <div class="tree-stat-item">
-                <div class="tsi-icon">✨</div>
-                <div class="tsi-value" id="expText">0</div>
-                <div class="tsi-label">经验值</div>
-            </div>
-            <div class="tree-stat-item">
-                <div class="tsi-icon">💚</div>
-                <div class="tsi-value" id="healthText">100</div>
-                <div class="tsi-label">健康值</div>
-            </div>
-        </div>
+        <div class="stage-hero" id="stageEmoji">🌰</div>
+        <div class="stage-hero-name" id="stageName">种子</div>
+        <div class="stage-hero-desc" id="stageDesc">一颗种子在泥土中沉睡，等待第一缕阳光</div>
         <div class="progress-bar" style="margin-top:18px;">
             <div class="progress-fill" id="progressFill" style="width:0%"></div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">经验进度 <span id="expLabel">0 / 100</span></p>
+        <div class="tree-stats-row" style="margin-top:8px;">
+            <span style="font-size:13px;color:var(--text-muted);">成长进度</span>
+        </div>
+        <div class="tree-stats-row" style="margin-top:12px;">
+            <div class="tree-stat-item" style="display:inline-block; margin:0 auto;">
+                <div class="tsi-icon">💚</div>
+                <div class="tsi-value" id="vitalityText">💚💚💚💚💚</div>
+                <div class="tsi-label">活力</div>
+            </div>
+        </div>
     </div>
 
     <div class="card">
@@ -93,7 +92,16 @@
 {% block page_js %}
 <script>
     const EMO_COLORS = GR.EMO_COLORS;
-    const EMO_EMOJIS = GR.EMO_EMOJIS;
+    const EMO_ICONS = GR.EMO_ICONS;
+
+    function renderVitality(health) {
+        const full = Math.round((health || 100) / 20);
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            html += i < full ? '💚' : '🤍';
+        }
+        return html;
+    }
 
     async function initProfile() {
         try {
@@ -105,11 +113,11 @@
             const u = await uR.json(), t = await tR.json(), list = await lR.json();
 
             document.getElementById('welcomeText').textContent = u.nickname;
-            document.getElementById('levelText').textContent = t.level;
-            document.getElementById('expText').textContent = t.exp;
-            document.getElementById('healthText').textContent = t.health;
-            document.getElementById('progressFill').style.width = t.exp + '%';
-            document.getElementById('expLabel').textContent = t.exp + ' / 100';
+            document.getElementById('stageEmoji').textContent = t.stage_emoji || '🌰';
+            document.getElementById('stageName').textContent = t.stage_name || '种子';
+            document.getElementById('stageDesc').textContent = t.stage_desc || '';
+            document.getElementById('progressFill').style.width = (t.exp || 0) + '%';
+            document.getElementById('vitalityText').textContent = renderVitality(t.health);
 
             const wrap = document.getElementById('checkinList');
             if (!list.length) {
@@ -118,15 +126,17 @@
                 let html = '';
                 list.forEach(item => {
                     const bg = EMO_COLORS[item.emotion] || '#94a3b8';
+                    var iconName = EMO_ICONS[item.emotion] || 'help-circle';
                     html += '<div class="checkin-item">' +
                         '<div class="ci-left">' +
-                        '<span class="ci-emoji" style="background:' + bg + '33;color:' + bg + ';">' + (EMO_EMOJIS[item.emotion]||'📝') + '</span>' +
+                        '<span class="ci-emoji" style="background:' + bg + '33;color:' + bg + ';"><i data-lucide="' + iconName + '" style="width:18px;height:18px;"></i></span>' +
                         '<span class="ci-meta"><span class="ci-time">' + item.time + '</span><span class="ci-emotion">' + item.emotion + '</span></span>' +
                         '</div>' +
                         '<span class="ci-content">' + (item.content || '无') + '</span>' +
                         '</div>';
                 });
                 wrap.innerHTML = html;
+                if (window.lucide) window.lucide.createIcons();
             }
         } catch (e) { console.error(e); }
     }

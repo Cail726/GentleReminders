@@ -6,7 +6,12 @@ from config import LETTER_TEMPLATES
 
 def generate_letter(user_id: int, tree_level: int, db: Session):
     """根据用户情绪历史生成个性化信件"""
-    level_key = max(k for k in LETTER_TEMPLATES if k <= tree_level)
+    milestones = sorted(LETTER_TEMPLATES.keys())
+    eligible = [k for k in milestones if k <= tree_level]
+    if not eligible:
+        level_key = milestones[0]
+    else:
+        level_key = max(eligible)
     tmpl = LETTER_TEMPLATES[level_key]
 
     checkins = (

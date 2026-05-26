@@ -77,11 +77,11 @@
 {% endblock %}
 {% block content %}
 <div class="page-container scale-container">
-    <h1 class="page-title">📋 心理状态自评量表</h1>
+    <h1 class="page-title"><i data-lucide="clipboard-list" style="width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>心理状态自评量表</h1>
     <p class="page-subtitle">25道题目，约5分钟完成 · 了解自己的心理状态</p>
 
     <div class="notice-box scale-notice" id="noticeBox">
-        ⚠️ <strong>重要提示：</strong>本量表仅用于自我了解与状态描述，<strong>不构成任何医学或心理学诊断</strong>。如果你的测评结果显示较高困扰，建议与信任的朋友、家人交流，或主动寻求学校心理咨询中心的专业帮助。
+        <i data-lucide="alert-triangle" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> <strong>重要提示：</strong>本量表仅用于自我了解与状态描述，<strong>不构成任何医学或心理学诊断</strong>。如果你的测评结果显示较高困扰，建议与信任的朋友、家人交流，或主动寻求学校心理咨询中心的专业帮助。
     </div>
 
     <div id="scaleArea"></div>
@@ -91,7 +91,7 @@
         <div class="chart-box radar" id="radarChart"></div>
         <div class="dim-result" id="dimResults"></div>
         <div class="card" id="historyCard" style="display:none;">
-            <h3>📊 历史测评记录</h3>
+            <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>历史测评记录</h3>
             <div class="data-table-wrap">
                 <table class="data-table">
                     <thead>
@@ -102,7 +102,7 @@
             </div>
         </div>
         <div class="btn-group">
-            <button class="btn btn-primary ripple" onclick="resetScale()">🔄 重新测评</button>
+            <button class="btn btn-primary ripple" onclick="resetScale()"><i data-lucide="refresh-cw" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>重新测评</button>
             <a href="/" class="btn btn-ghost ripple">返回首页</a>
         </div>
     </div>
@@ -142,11 +142,11 @@
             dims[q.dimension].push(q);
         });
 
-        const dimEmojis = {'焦虑感受':'😰','情绪状态':'💙','社交状态':'🤝','压力与疲惫':'😫','睡眠质量':'😴'};
+        const dimIcons = {'焦虑感受':'frown','情绪状态':'heart','社交状态':'users','压力与疲惫':'battery-warning','睡眠质量':'moon'};
         let html = '<div class="scale-progress-wrap"><div class="scale-progress-text"><span>答题进度</span><span id="progressText">0/' + questions.length + '</span></div><div class="progress-bar"><div class="progress-fill" id="scaleProgress" style="width:0%"></div></div></div>';
 
         for (const [dim, qs] of Object.entries(dims)) {
-            html += '<div class="dim-section"><div class="dim-header">' + (dimEmojis[dim]||'') + ' ' + dim + '</div>';
+            html += '<div class="dim-section"><div class="dim-header"><i data-lucide="' + (dimIcons[dim]||'help-circle') + '" style="width:20px;height:20px;"></i> ' + dim + '</div>';
             qs.forEach(q => {
                 html += '<div class="q-item" id="qItem' + q.id + '"><div class="q-text">' + q.id + '. ' + q.text + '</div><div class="q-options">';
                 for (let i = 1; i <= 5; i++) {
@@ -156,8 +156,9 @@
             });
             html += '</div>';
         }
-        html += '<div class="btn-group"><button class="btn btn-success btn-lg ripple" onclick="submitScale()" id="btnSubmit" disabled>📤 提交量表</button></div>';
+        html += '<div class="btn-group"><button class="btn btn-success btn-lg ripple" onclick="submitScale()" id="btnSubmit" disabled><i data-lucide="send" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>提交量表</button></div>';
         document.getElementById('scaleArea').innerHTML = html;
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function selectOption(el) {
@@ -196,7 +197,7 @@
             historyData.unshift(currentResult);
             showResult();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch (e) { GR.toast('提交失败，请重试', 'error'); btn.disabled = false; btn.textContent = '📤 提交量表'; }
+        } catch (e) { GR.toast('提交失败，请重试', 'error'); btn.disabled = false; btn.textContent = '提交量表'; }
     }
 
     function showResult() {
@@ -238,16 +239,17 @@
         }, 200);
 
         let dimHtml = '';
-        const dimEmojis = {'焦虑感受':'😰','情绪状态':'💙','社交状态':'🤝','压力与疲惫':'😫','睡眠质量':'😴'};
+        const dimIcons2 = {'焦虑感受':'frown','情绪状态':'heart','社交状态':'users','压力与疲惫':'battery-warning','睡眠质量':'moon'};
         for (const [dim, interp] of Object.entries(res.interpretations)) {
             const score = res.dimension_scores[dim] || 0;
             dimHtml += '<div class="dim-card ' + interp.level + '">' +
-                '<div class="dim-name">' + (dimEmojis[dim]||'') + ' ' + dim + '</div>' +
+                '<div class="dim-name"><i data-lucide="' + (dimIcons2[dim]||'help-circle') + '" style="width:18px;height:18px;"></i> ' + dim + '</div>' +
                 '<div class="dim-score">' + score.toFixed(1) + '</div>' +
                 '<div class="dim-label">' + interp.label + '</div>' +
                 '<div class="dim-desc">' + interp.desc + '</div></div>';
         }
         document.getElementById('dimResults').innerHTML = dimHtml;
+        if (window.lucide) window.lucide.createIcons();
 
         if (historyData.length > 1) {
             document.getElementById('historyCard').style.display = 'block';

@@ -2,7 +2,7 @@
 {% block title %}情绪打卡 - Gentle Reminders{% endblock %}
 {% block page_css %}
 <style>
-    .checkin-layout { max-width: 620px; margin: 0 auto; }
+    .checkin-layout { max-width: 540px; margin: 0 auto; }
 
     .emotion-pick-area { margin-bottom: 28px; }
     .emotion-pick-area .section-label {
@@ -13,26 +13,40 @@
     .diary-area { margin-bottom: 24px; }
 
     .save-feedback {
-        text-align: center; padding: 16px; border-radius: var(--radius);
-        background: var(--brand-50); color: var(--secondary-dark);
+        text-align: center; padding: 18px; border-radius: var(--radius);
+        background: var(--primary-soft); color: var(--primary-dark);
         font-weight: 600; font-size: 15px;
         display: none; animation: slideUp 0.4s var(--ease);
     }
     .save-feedback.show { display: block; }
 
     .tree-mini {
-        display: flex; align-items: center; gap: 14px;
-        padding: 16px 20px; border-radius: var(--radius);
+        display: flex; align-items: center; gap: 16px;
+        padding: 20px 24px; border-radius: var(--radius);
         background: var(--glass-bg);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-sm);
     }
     .tree-mini .tm-emoji {
-        font-size: 42px; transition: transform 0.4s var(--ease-bounce);
+        font-size: 44px; transition: transform 0.4s var(--ease-bounce);
     }
-    .tree-mini .tm-info { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
-    .tree-mini .tm-info strong { color: var(--text); }
+    .tree-mini .tm-info { font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+    .tree-mini .tm-info .tm-stage-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .tree-mini .tm-info .tm-stage-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .vitality-dots { display: inline-flex; gap: 3px; margin-left: 4px; }
+    .vitality-dots .vd { font-size: 10px; }
+
+    .whisper-bubble {
+        margin-top: 14px; padding: 18px 22px; border-radius: var(--radius);
+        background: var(--primary-soft); color: var(--primary-dark);
+        font-size: 14px; line-height: 1.8; font-style: italic;
+        animation: fadeInUp 0.5s var(--ease); display: none;
+    }
+    .whisper-bubble.show { display: block; }
+    [data-theme="dark"] .whisper-bubble { background: rgba(109,175,156,0.08); color: var(--primary-light); }
 </style>
 {% endblock %}
 {% block content %}
@@ -46,7 +60,9 @@
     </div>
 
     <div class="diary-area">
-        <textarea class="textarea-lg" id="content" placeholder="今天发生了什么？开心的事、烦恼的事、任何想说的...&#10;&#10;写下来，让小树陪你一起感受～"></textarea>
+        <textarea class="textarea-lg" id="content" placeholder="今天发生了什么？开心的事、烦恼的事、任何想说的...
+
+写下来，让小树陪你一起感受～"></textarea>
     </div>
 
     <div class="btn-group">
@@ -55,13 +71,14 @@
     </div>
 
     <div class="save-feedback" id="saveFeedback"></div>
+    <div class="whisper-bubble" id="whisperBubble"></div>
 
     <div class="tree-mini" id="treeMini" style="margin-top:24px;">
-        <span class="tm-emoji" id="treeEmoji">🌱</span>
+        <span class="tm-emoji" id="treeEmoji">🌰</span>
         <div class="tm-info">
-            小树等级 <strong id="treeLevel">1</strong> 级 ·
-            经验 <strong id="treeExp">0</strong>/100 ·
-            健康 <strong id="treeHealth">100</strong>
+            <div class="tm-stage-name" id="treeStageName">种子</div>
+            <div class="tm-stage-desc" id="treeStageDesc">一颗种子在泥土中沉睡，等待第一缕阳光</div>
+            活力 <span id="vitalityDots" class="vitality-dots"></span>
         </div>
     </div>
 </div>
@@ -70,17 +87,18 @@
 <script>
     const EMOTIONS = ['开心','放松','平静','低落','焦虑','疲惫'];
     const EMO_COLORS = GR.EMO_COLORS;
-    const EMO_EMOJIS = GR.EMO_EMOJIS;
+    const EMO_ICONS = GR.EMO_ICONS;
 
     let currentEmotion = '';
 
     function buildEmotionCards() {
         const wrap = document.getElementById('emotionSelector');
         wrap.innerHTML = EMOTIONS.map(e =>
-            '<div class="emotion-card" data-emotion="' + e + '" onclick="pickEmotion(\'' + e + '\', this)" style="border-top:3px solid ' + (EMO_COLORS[e]||'#ccc') + ';">' +
-            '<span class="ec-emoji">' + (EMO_EMOJIS[e]||'') + '</span>' +
+            '<div class="emotion-card" data-emotion="' + e + '" onclick="pickEmotion(\'' + e + '\', this)" style="border-top:3px solid ' + (EMO_COLORS[e]||'#94a3b8') + ';">' +
+            '<span class="ec-emoji"><i data-lucide="' + (EMO_ICONS[e]||'help-circle') + '" style="width:32px;height:32px;color:' + (EMO_COLORS[e]||'#94a3b8') + ';"></i></span>' +
             '<span class="ec-label">' + e + '</span></div>'
         ).join('');
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function pickEmotion(emo, el) {
@@ -110,6 +128,22 @@
         finally { btn.disabled = false; btn.textContent = 'AI 帮我识别情绪'; }
     }
 
+    function renderVitality(health) {
+        const full = Math.round(health / 20);
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            html += '<span class="vd">' + (i < full ? '💚' : '🤍') + '</span>';
+        }
+        return html;
+    }
+
+    function updateTreeDisplay(d) {
+        document.getElementById('treeEmoji').textContent = d.stage_emoji || '🌰';
+        document.getElementById('treeStageName').textContent = d.stage_name || '种子';
+        document.getElementById('treeStageDesc').textContent = d.stage_desc || '';
+        document.getElementById('vitalityDots').innerHTML = renderVitality(d.tree_health || d.health || 100);
+    }
+
     async function saveCheckin() {
         const text = document.getElementById('content').value.trim();
         if (!currentEmotion) { GR.toast('请先点击选择一个情绪，或使用 AI 识别', 'info'); return; }
@@ -123,16 +157,23 @@
             const r = await fetch('/api/checkin', { method: 'POST', body: fd });
             const d = await r.json();
 
-            document.getElementById('treeLevel').textContent = d.tree_level;
-            document.getElementById('treeExp').textContent = d.tree_exp;
-            document.getElementById('treeHealth').textContent = d.tree_health;
-            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
-            const lvl = Math.min(d.tree_level, 10);
-            document.getElementById('treeEmoji').textContent = treeEmojis[Math.max(0, lvl - 1)] || '🌲';
+            updateTreeDisplay(d);
+
+            if (d.whisper) {
+                const wb = document.getElementById('whisperBubble');
+                wb.textContent = '🌿 ' + d.whisper;
+                wb.className = 'whisper-bubble show';
+            }
 
             const fb = document.getElementById('saveFeedback');
             fb.className = 'save-feedback show';
-            fb.textContent = '打卡成功！小树感受到你的「' + currentEmotion + '」，获得了成长力量～';
+            fb.textContent = '打卡成功！小树感受到了你的陪伴～';
+            clearTimeout(window._feedbackTimer);
+            window._feedbackTimer = setTimeout(function () {
+                fb.classList.remove('show');
+                var wb = document.getElementById('whisperBubble');
+                if (wb) wb.classList.remove('show');
+            }, 4000);
 
             currentEmotion = '';
             document.querySelectorAll('.emotion-card').forEach(c => c.classList.remove('selected'));
@@ -146,12 +187,7 @@
         try {
             const r = await fetch('/api/tree/info');
             const t = await r.json();
-            document.getElementById('treeLevel').textContent = t.level;
-            document.getElementById('treeExp').textContent = t.exp;
-            document.getElementById('treeHealth').textContent = t.health;
-            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
-            const lvl = Math.min(t.level, 10);
-            document.getElementById('treeEmoji').textContent = treeEmojis[Math.max(0, lvl - 1)] || '🌲';
+            updateTreeDisplay(t);
         } catch (e) {}
     }
 

@@ -2,49 +2,87 @@
 {% block title %}心灵小树 - Gentle Reminders{% endblock %}
 {% block page_css %}
 <style>
-    .home-container { max-width: 520px; margin: 0 auto; }
+    .home-container { max-width: 480px; margin: 0 auto; }
 
     .tree-card {
         background: var(--glass-bg);
         backdrop-filter: blur(var(--glass-blur));
         -webkit-backdrop-filter: blur(var(--glass-blur));
-        padding: 40px 30px 32px; border-radius: var(--radius-lg);
+        padding: 44px 28px 32px; border-radius: var(--radius-lg);
         box-shadow: var(--shadow-card);
         border: 1px solid var(--glass-border);
-        text-align: center; margin-bottom: 24px;
-        animation: fadeInUp 0.6s var(--ease);
+        text-align: center; margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    }
+    .tree-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 80px;
+        background: linear-gradient(180deg, var(--primary-soft), transparent);
+        pointer-events: none;
     }
 
-    .greeting-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
-    .greeting-text strong { color: var(--text); font-size: 16px; }
+    .greeting-text { font-size: 14px; color: var(--text-muted); margin: 16px 0 0; }
+    .greeting-text strong { color: var(--text); font-size: 17px; font-weight: 700; }
+
+    .stage-badge {
+        display: inline-block; padding: 6px 18px; border-radius: 20px;
+        background: var(--primary-soft); color: var(--primary-dark);
+        font-weight: 700; font-size: 14px; margin: 20px 0 4px;
+    }
+    .stage-desc-text {
+        font-size: 13px; color: var(--text-muted); margin: 6px 0 0;
+        line-height: 1.7; max-width: 280px; margin-left: auto; margin-right: auto;
+    }
 
     .quick-stats {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-        margin: 20px 0 8px;
+        display: flex; justify-content: center; gap: 10px; margin: 20px 0 8px;
     }
     .quick-stat {
-        background: var(--bg-input); padding: 14px 10px; border-radius: var(--radius-sm);
+        background: var(--bg-input); padding: 12px 20px; border-radius: var(--radius-sm);
         text-align: center;
     }
-    .quick-stat .qs-value { font-size: 22px; font-weight: 800; color: var(--primary); }
-    .quick-stat .qs-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .quick-stat .qs-value { font-size: 18px; letter-spacing: 3px; }
+    .quick-stat .qs-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-    .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+    .daily-whisper {
+        margin: 20px auto 0; max-width: 360px; padding: 18px 22px;
+        border-radius: var(--radius); background: var(--primary-soft);
+        display: flex; align-items: flex-start; gap: 10px;
+        text-align: left; font-size: 14px; color: var(--primary-dark);
+        line-height: 1.8; font-style: italic;
+        animation: fadeInUp 0.5s var(--ease);
+    }
+    .daily-whisper .dw-icon { flex-shrink: 0; margin-top: 2px; opacity: 0.5; }
+    [data-theme="dark"] .daily-whisper { background: rgba(109,175,156,0.08); color: var(--primary-light); }
+
+    .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
     .action-card {
         display: block; text-decoration: none;
         background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 22px 18px; border-radius: var(--radius);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 24px 18px; border-radius: var(--radius);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-sm);
-        transition: all var(--fast) var(--ease);
+        transition: all 0.25s var(--ease);
         text-align: center;
     }
-    .action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
-    .action-card .ac-icon { font-size: 32px; display: block; margin-bottom: 6px; }
+    .action-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-float); border-color: transparent; }
+    .action-card .ac-icon { margin: 0 auto 10px; display: block; }
     .action-card .ac-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .action-card .ac-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .action-card .ac-desc { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    .letter-notify-card {
+        display: block; text-decoration: none; margin-top: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 18px 22px; border-radius: var(--radius);
+        border: 1px solid var(--primary-light);
+        box-shadow: var(--shadow-sm);
+        text-align: center; animation: fadeIn 0.5s var(--ease);
+    }
+    .letter-notify-card .ln-title { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .letter-notify-card .ln-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 </style>
 {% endblock %}
 {% block content %}
@@ -53,58 +91,55 @@
         <div class="tree-stage">
             <div class="tree-display" id="treeEmoji">
                 <div class="tree-particles" id="treeParticles"></div>
-                🌱
+                🌰
             </div>
         </div>
         <p class="greeting-text"><strong id="nickname">---</strong> 的心灵小树</p>
+
+        <div class="daily-whisper" id="dailyWhisper">
+            <i data-lucide="message-circle" class="dw-icon" style="width:16px;height:16px;"></i>
+            <span id="whisperText">...</span>
+        </div>
+
+        <div class="stage-badge" id="stageBadge">种子</div>
+        <p class="stage-desc-text" id="stageDesc">一颗种子在泥土中沉睡，等待第一缕阳光</p>
+        <div class="growth-bar">
+            <div class="growth-fill" id="growthFill" style="width:0%"></div>
+        </div>
         <div class="quick-stats">
             <div class="quick-stat">
-                <div class="qs-value" id="homeLevel">1</div>
-                <div class="qs-label">等级</div>
-            </div>
-            <div class="quick-stat">
-                <div class="qs-value" id="homeExp">0</div>
-                <div class="qs-label">经验</div>
-            </div>
-            <div class="quick-stat">
-                <div class="qs-value" id="homeHealth">100</div>
-                <div class="qs-label">健康</div>
+                <div class="qs-value" id="homeVitality">💚💚💚💚💚</div>
+                <div class="qs-label">今日活力</div>
             </div>
         </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width:0%"></div>
-        </div>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:6px;" id="expLabel">0 / 100</p>
     </div>
 
-    <div id="letterNotify" style="display:none; margin-top:20px;">
-        <a href="/letters" style="text-decoration:none;">
-            <div class="card" style="text-align:center; padding:18px 22px; border:1px solid var(--primary); animation: fadeIn 0.5s var(--ease);">
-                <span style="font-size:18px;">💌</span>
-                <span style="font-size:14px; font-weight:700; color:var(--primary); margin-left:6px;" id="letterNotifyTitle"></span>
-                <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">小树给你写了一封信，点击查看 →</span>
-            </div>
+    <div id="letterNotify" style="display:none;">
+        <a href="/letters" class="letter-notify-card">
+            <i data-lucide="mail" style="width:18px;height:18px;color:var(--primary);display:inline-block;vertical-align:middle;"></i>
+            <span class="ln-title" id="letterNotifyTitle" style="margin-left:6px;"></span>
+            <span class="ln-sub">小树给你写了一封信，点击查看 →</span>
         </a>
     </div>
 
     <div class="action-cards">
         <a href="/checkin" class="action-card">
-            <span class="ac-icon">✍️</span>
+            <span class="ac-icon"><i data-lucide="pen-line" style="width:26px;height:26px;color:var(--primary);"></i></span>
             <span class="ac-title">情绪打卡</span>
             <span class="ac-desc">记录今日心情</span>
         </a>
         <a href="/letters" class="action-card">
-            <span class="ac-icon">💌</span>
+            <span class="ac-icon"><i data-lucide="mail" style="width:26px;height:26px;color:var(--secondary);"></i></span>
             <span class="ac-title">我的信件</span>
             <span class="ac-desc">小树写给你的信</span>
         </a>
         <a href="/trends" class="action-card">
-            <span class="ac-icon">📈</span>
+            <span class="ac-icon"><i data-lucide="trending-up" style="width:26px;height:26px;color:#7EB8DA;"></i></span>
             <span class="ac-title">趋势分析</span>
             <span class="ac-desc">情绪变化趋势</span>
         </a>
         <a href="/assessment" class="action-card">
-            <span class="ac-icon">🧠</span>
+            <span class="ac-icon"><i data-lucide="brain" style="width:26px;height:26px;color:var(--accent);"></i></span>
             <span class="ac-title">心理评估</span>
             <span class="ac-desc">MSF-XGB 分析</span>
         </a>
@@ -113,6 +148,39 @@
 {% endblock %}
 {% block page_js %}
 <script>
+    function getDailyWhisper() {
+        var hour = new Date().getHours();
+        var whispers = {
+            morning: [
+                '早安。今天的阳光穿过我的叶子，像你昨天留下的温暖。',
+                '晨风拂过树梢——新的一天，我在等你。',
+                '你醒啦。我抖了抖叶子上的露珠，今天也一起走吧。'
+            ],
+            afternoon: [
+                '午后的风很轻。不管你上午经历了什么，这里永远是你的树荫。',
+                '太阳正高，我的影子刚好够你躲一躲。',
+                '下午好。感到累也没关系，树的节奏本来就很慢。'
+            ],
+            evening: [
+                '黄昏了。今天无论过得怎样，你都已经足够努力。',
+                '夕阳落在我身上，暖暖的。你也要暖暖的。',
+                '天色暗下来了，但你不是一个人——我在这里。'
+            ],
+            night: [
+                '夜深了。闭上眼睛吧，我的根在泥土里守着你的梦。',
+                '星星出来了。今天辛苦了，好好睡一觉。',
+                '万籁俱寂。我记得你今天做过的每一件事——你做得很好。'
+            ]
+        };
+        var period;
+        if (hour >= 5 && hour < 11) period = 'morning';
+        else if (hour >= 11 && hour < 17) period = 'afternoon';
+        else if (hour >= 17 && hour < 22) period = 'evening';
+        else period = 'night';
+        var msgs = whispers[period];
+        return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+
     function spawnParticles() {
         const container = document.getElementById('treeParticles');
         if (!container) return;
@@ -129,6 +197,15 @@
         container.innerHTML = html;
     }
 
+    function renderVitality(health) {
+        const full = Math.round((health || 100) / 20);
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            html += i < full ? '💚' : '🤍';
+        }
+        return html;
+    }
+
     async function loadPageData() {
         try {
             const [userRes, treeRes, letterRes] = await Promise.all([
@@ -140,11 +217,19 @@
             const t = await treeRes.json();
             const letters = await letterRes.json();
             document.getElementById('nickname').textContent = u.nickname;
-            document.getElementById('homeLevel').textContent = t.level;
-            document.getElementById('homeExp').textContent = t.exp;
-            document.getElementById('homeHealth').textContent = t.health;
-            document.getElementById('progressFill').style.width = t.exp + '%';
-            document.getElementById('expLabel').textContent = t.exp + ' / 100';
+
+            document.getElementById('stageBadge').textContent = (t.stage_emoji || '🌰') + ' ' + (t.stage_name || '种子');
+            document.getElementById('stageDesc').textContent = t.stage_desc || '';
+            document.getElementById('growthFill').style.width = (t.exp || 0) + '%';
+            document.getElementById('homeVitality').textContent = renderVitality(t.health);
+
+            document.getElementById('whisperText').textContent = getDailyWhisper();
+
+            const emoji = t.stage_emoji || '🌰';
+            const textNode = document.getElementById('treeEmoji').lastChild;
+            if (textNode) textNode.textContent = emoji;
+
+            if (window.lucide) window.lucide.createIcons();
 
             if (letters && letters.length > 0) {
                 const notif = document.getElementById('letterNotify');
@@ -153,10 +238,6 @@
                     document.getElementById('letterNotifyTitle').textContent = letters[0].title;
                 }
             }
-
-            const treeEmojis = ['🌱','🌿','🪴','🌿','🪴','🌳','🌳','🌲','🌲','🌲'];
-            const e = t.level <= 10 ? treeEmojis[Math.max(0, t.level - 1)] : '🌲';
-            document.getElementById('treeEmoji').lastChild.textContent = e;
         } catch (e) { console.error(e); }
     }
 

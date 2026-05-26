@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models.database import get_db
 from models.models import CheckIn, ScaleResponse, Assessment
-from dependencies import get_current_user
+from dependencies import get_current_user, verify_csrf
 
 router = APIRouter()
 
 
 @router.post("/api/model/assess")
-def run_assessment(user=Depends(get_current_user), db: Session = Depends(get_db)):
+def run_assessment(user=Depends(get_current_user), db: Session = Depends(get_db), _csrf=Depends(verify_csrf)):
     from train import predict as model_predict
 
     checkins = (

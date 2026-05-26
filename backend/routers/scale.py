@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
 from models.database import get_db
 from models.models import ScaleResponse
-from dependencies import get_current_user
+from dependencies import get_current_user, json_error, verify_csrf
 from config import SCALE_QUESTIONS, SCALE_DIMENSION_ORDER, interpret_dimension
 
 router = APIRouter()
@@ -19,7 +19,8 @@ def get_scale_questions():
 def submit_scale(
     answers: str = Form(...),
     user=Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _csrf=Depends(verify_csrf),
 ):
     answer_dict = {}
     try:
@@ -28,13 +29,13 @@ def submit_scale(
             qid = int(qid)
             score = int(score)
             if qid < 1 or qid > 25 or score < 1 or score > 5:
-                return {"code": 400, "msg": "答案格式无效"}
+                return json_error("答案格式无效")
             answer_dict[qid] = score
     except ValueError:
-        return {"code": 400, "msg": "答案格式无效"}
+        return json_error("答案格式无效")
 
     if len(answer_dict) != 25:
-        return {"code": 400, "msg": "请完成全部25道题目"}
+        return json_error("请完成全部25道题目")
 
     dim_scores = {}
     dim_counts = {}

@@ -1,0 +1,84 @@
+{% extends "base_admin.html" %}
+{% block title %}每日趋势 - 管理后台{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="page-container wide">
+    <h1 class="page-title">📈 每日情绪趋势</h1>
+    <p class="page-subtitle">最近30天全校打卡趋势（群体汇总，不涉及个人信息）</p>
+
+    <div class="chart-row">
+        <div class="card">
+            <h3>📅 每日打卡数</h3>
+            <div class="chart-box" id="dailyChart"></div>
+        </div>
+        <div class="card">
+            <h3>🕐 打卡时段分布</h3>
+            <div class="chart-box" id="hourlyChart"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+    let dailyChartInst, hourlyChartInst;
+
+    async function loadData() {
+        const [trendRes, hourlyRes] = await Promise.all([
+            fetch('/api/admin/daily-trend'),
+            fetch('/api/admin/hourly-distribution')
+        ]);
+        const trend = await trendRes.json();
+        const hourly = await hourlyRes.json();
+        renderDaily(trend);
+        renderHourly(hourly);
+    }
+
+    function renderDaily(data) {
+        if (!dailyChartInst) dailyChartInst = echarts.init(document.getElementById('dailyChart'));
+        const isDark = GR.getTheme() === 'dark';
+        dailyChartInst.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['打卡数', '平均情绪'], textStyle: { color: isDark ? '#A0A8B8' : '#6B7280' } },
+            xAxis: { type: 'category', data: data.map(d => d.date.slice(5)), axisLabel: { fontSize: 11 } },
+            yAxis: [
+                { type: 'value', name: '打卡数', minInterval: 1 },
+                { type: 'value', name: '均分', min: 1, max: 5 }
+            ],
+            series: [
+                { name: '打卡数', type: 'bar', data: data.map(d => d.count), barMaxWidth: 18,
+                  itemStyle: { borderRadius: [4,4,0,0], color: '#7CB9E8' } },
+                { name: '平均情绪', type: 'line', yAxisIndex: 1, data: data.map(d => d.avg_mood),
+                  lineStyle: { color: '#E07B7B' }, itemStyle: { color: '#E07B7B' },
+                  symbol: 'circle', symbolSize: 6 },
+            ],
+            grid: { top: 40, right: 60, bottom: 40, left: 50 }
+        });
+    }
+
+    function renderHourly(data) {
+        if (!hourlyChartInst) hourlyChartInst = echarts.init(document.getElementById('hourlyChart'));
+        const hours = Object.keys(data), counts = Object.values(data);
+        hourlyChartInst.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: hours.map(h => h + ':00'), axisLabel: { fontSize: 11, rotate: 45 } },
+            yAxis: { type: 'value', minInterval: 1 },
+            series: [{ type: 'bar', data: counts, barMaxWidth: 24,
+                       itemStyle: { borderRadius: [4,4,0,0], color: '#5EB3A3' } }],
+            grid: { top: 20, right: 20, bottom: 50, left: 45 }
+        });
+    }
+
+    GR.onThemeChange(function() {
+        if (dailyChartInst) { dailyChartInst.dispose(); dailyChartInst = null; }
+        if (hourlyChartInst) { hourlyChartInst.dispose(); hourlyChartInst = null; }
+        loadData();
+    });
+
+    function handleLogout() { if (confirm('确定要退出管理后台吗？')) window.location.href = '/admin/logout'; }
+    loadData();
+</script>
+{% endblock %}

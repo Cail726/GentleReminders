@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept 3 — 自然有机风 | Gentle Reminders</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background: #faf8f3; color: #3d3929; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .app{max-width:460px;width:100%}
+
+  /* Organic shape blobs in background */
+  .bg-blob{
+    position:fixed;border-radius:50%;filter:blur(80px);opacity:0.12;z-index:-1;pointer-events:none;
+  }
+  .bg-blob.b1{width:400px;height:400px;background:#e8c87a;top:-100px;right:-80px}
+  .bg-blob.b2{width:350px;height:350px;background:#a8d8c8;bottom:-80px;left:-60px}
+  .bg-blob.b3{width:250px;height:250px;background:#d4a88c;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+  /* Header */
+  .header{text-align:center;margin-bottom:32px}
+  .header .logo{
+    width:72px;height:72px;border-radius:50%;margin:0 auto 16px;
+    background:linear-gradient(135deg,#f0d78c,#e8b870);
+    display:flex;align-items:center;justify-content:center;font-size:36px;
+    box-shadow:0 8px 32px rgba(200,160,100,0.25);
+  }
+  .header h1{font-size:24px;font-weight:700;color:#3d3929;letter-spacing:-0.3px}
+  .header p{font-size:13px;color:#8b8468;margin-top:4px}
+
+  /* Warm card — rounded corners, organic feel */
+  .warm-card{
+    background:#fffefb;border-radius:28px;padding:28px 24px;margin-bottom:16px;
+    border:1px solid rgba(180,160,130,0.15);
+    box-shadow:0 2px 16px rgba(100,80,50,0.06);
+    position:relative;overflow:hidden;
+  }
+  .warm-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,#e8c87a,#d4a88c,#a8d8c8);
+  }
+
+  /* Tree section */
+  .tree-section{text-align:center;margin-bottom:20px}
+  .tree-section .big-emoji{font-size:64px;display:block;margin-bottom:10px}
+  .tree-section .stage-label{
+    display:inline-block;background:#f5efe0;color:#8b6914;
+    padding:6px 18px;border-radius:20px;font-size:13px;font-weight:600;
+  }
+
+  /* Growth circles instead of bar */
+  .growth-circles{display:flex;justify-content:center;gap:10px;margin:20px 0}
+  .g-circle{
+    width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:16px;transition:all 0.3s;
+  }
+  .g-circle.filled{background:#f0e8d0;box-shadow:0 2px 8px rgba(200,160,100,0.2)}
+  .g-circle.empty{background:#f5f2eb;border:2px dashed #e0d8c8}
+
+  /* Whisper — paper-like */
+  .whisper-paper{
+    background:linear-gradient(135deg,#fef9ee,#fdf5e6);
+    border-radius:20px;padding:22px 20px;margin:16px 0;
+    border:1px solid rgba(200,170,120,0.2);
+    font-size:14px;line-height:1.9;color:#6b5e3f;font-style:italic;
+    position:relative;
+  }
+  .whisper-paper::after{
+    content:'"';position:absolute;top:-8px;left:16px;
+    font-size:48px;color:rgba(200,170,120,0.2);font-family:Georgia,serif;line-height:1;
+  }
+
+  /* Action cards — warm */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .act{
+    background:#fffefb;border-radius:22px;padding:22px 16px;text-decoration:none;color:inherit;
+    border:1px solid rgba(180,160,130,0.12);
+    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);text-align:center;
+    box-shadow:0 1px 4px rgba(100,80,50,0.04);
+  }
+  .act:hover{
+    transform:translateY(-4px);box-shadow:0 10px 28px rgba(100,80,50,0.1);
+    border-color:rgba(200,160,80,0.3);
+  }
+  .act .a-icon{font-size:26px;display:block;margin-bottom:8px}
+  .act .a-title{font-size:14px;font-weight:700;color:#3d3929}
+  .act .a-desc{font-size:11px;color:#8b8468;margin-top:3px}
+
+  /* Bottom */
+  .footer-note{text-align:center;margin-top:24px;font-size:11px;color:#b8b090;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="bg-blob b1"></div><div class="bg-blob b2"></div><div class="bg-blob b3"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">🌱</div>
+    <h1>你的心灵小树</h1>
+    <p>像照顾一棵真正的植物一样，照顾你的内心</p>
+  </div>
+
+  <div class="warm-card">
+    <div class="tree-section">
+      <span class="big-emoji">🪴</span>
+      <div class="stage-label">🌿 幼苗 · 第 4 天</div>
+    </div>
+
+    <div class="growth-circles">
+      <div class="g-circle filled">🌰</div>
+      <div class="g-circle filled">🌱</div>
+      <div class="g-circle filled">🌿</div>
+      <div class="g-circle filled">🪴</div>
+      <div class="g-circle empty"></div>
+      <div class="g-circle empty"></div>
+      <div class="g-circle empty"></div>
+      <div class="g-circle empty"></div>
+    </div>
+
+    <div class="whisper-paper">
+      黄昏了。今天无论过得怎样，你都已经足够努力。<br>
+      夕阳落在我身上，暖暖的。你也要暖暖的。
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">
+      <span style="font-size:11px;color:#8b8468;">今日活力</span>
+      <span>💚💚💚💚🤍</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a href="#" class="act"><span class="a-icon">✧</span><span class="a-title">情绪打卡</span><span class="a-desc">记录今日心情</span></a>
+    <a href="#" class="act"><span class="a-icon">✉</span><span class="a-title">我的信件</span><span class="a-desc">小树写给你的信</span></a>
+    <a href="#" class="act"><span class="a-icon">↗</span><span class="a-title">趋势分析</span><span class="a-desc">情绪变化趋势</span></a>
+    <a href="#" class="act"><span class="a-icon">◈</span><span class="a-title">心理评估</span><span class="a-desc">了解自己</span></a>
+  </div>
+
+  <p class="footer-note">不必着急长大，每棵树都有自己的节奏 🌳</p>
+</div>
+</body>
+</html>

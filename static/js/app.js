@@ -137,10 +137,35 @@
         '开心': '😊', '放松': '😎', '平静': '😌', '低落': '😢', '焦虑': '😰', '疲惫': '😴'
     };
 
+    /* Lucide icon names per emotion (replaces emoji) */
+    window.GR.EMO_ICONS = {
+        '开心': 'smile-plus', '放松': 'sun', '平静': 'wind',
+        '低落': 'cloud-rain', '焦虑': 'zap', '疲惫': 'moon'
+    };
+
     window.GR.TREE_EMOJIS = ['🌱', '🌿', '🪴', '🌿', '🪴', '🌳', '🌳', '🌲', '🌲', '🌲'];
 
     window.GR.getTreeEmoji = function (level) {
         return level <= 10 ? window.GR.TREE_EMOJIS[Math.max(0, level - 1)] : '🌲';
+    };
+
+    /* Refresh Lucide icons after dynamic content changes */
+    window.GR.refreshIcons = function () {
+        if (window.lucide) window.lucide.createIcons();
+    };
+
+    /* Build a Lucide icon element */
+    window.GR.iconEl = function (name, size, cls) {
+        size = size || 20;
+        cls = cls || '';
+        return '<i data-lucide="' + name + '" style="width:' + size + 'px;height:' + size + 'px;" class="' + cls + '"></i>';
+    };
+
+    /* ========== HTML 转义（XSS 防护） ========== */
+    var _escapeDiv = document.createElement('div');
+    window.GR.escHtml = function (text) {
+        _escapeDiv.textContent = text || '';
+        return _escapeDiv.innerHTML;
     };
 
     /* ========== Toast 通知 ========== */
@@ -163,6 +188,36 @@
             if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 3200);
     };
+
+    /* ========== CSRF 防护：自动为 POST/PUT/DELETE 请求附加 X-CSRF-Token ========== */
+    var _originalFetch = window.fetch;
+    window.fetch = function (url, options) {
+        options = options || {};
+        var method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'DELETE', 'PATCH'].indexOf(method) !== -1) {
+            var csrfToken = '';
+            try {
+                csrfToken = document.cookie.split('; ').find(function (row) {
+                    return row.startsWith('csrf_token=');
+                }) || '';
+                csrfToken = csrfToken.split('=')[1] || '';
+            } catch (e) { /* noop */ }
+            if (csrfToken) {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    options.headers.set('X-CSRF-Token', csrfToken);
+                } else {
+                    options.headers['X-CSRF-Token'] = csrfToken;
+                }
+            }
+        }
+        return _originalFetch(url, options);
+    };
+
+    /* ========== Lucide 图标初始化 ========== */
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.lucide) window.lucide.createIcons();
+    });
 
     /* ========== 登录/注册等全局函数 ========== */
 })();

@@ -1,4 +1,5 @@
 """全局常量配置 — 情绪、量表、信件模板、AI 寄语"""
+import random
 
 VALID_EMOTIONS = {"开心", "放松", "平静", "低落", "焦虑", "疲惫"}
 
@@ -121,3 +122,88 @@ def interpret_dimension(avg: float) -> dict:
         return {"level": "orange", "label": "值得注意", "desc": "该维度存在较明显的困扰，建议主动寻求改善方法。"}
     else:
         return {"level": "red", "label": "需要关注", "desc": "该维度困扰程度较高，建议与信任的人交流或寻求心理咨询。"}
+
+
+# -- 树的可视化生长阶段（8 阶段，替代纯数值展示）
+TREE_STAGES = [
+    {"stage": 1, "name": "种子", "emoji": "🌰",
+     "desc": "一颗种子在泥土中沉睡，等待第一缕阳光"},
+    {"stage": 2, "name": "萌芽", "emoji": "🌱",
+     "desc": "嫩绿的叶芽探出头，第一次遇见这个世界"},
+    {"stage": 3, "name": "幼苗", "emoji": "🌿",
+     "desc": "细小的枝干向上伸展，根也扎得更深了"},
+    {"stage": 4, "name": "小树", "emoji": "🪴",
+     "desc": "树干渐粗，树冠初现，开始能独自面对风雨"},
+    {"stage": 5, "name": "花苞", "emoji": "🌷",
+     "desc": "枝条上结出第一个花苞——你的坚持让它含苞待放"},
+    {"stage": 6, "name": "繁花", "emoji": "🌸",
+     "desc": "满树花朵绽放，蝴蝶闻香而来"},
+    {"stage": 7, "name": "果实", "emoji": "🍎",
+     "desc": "青涩的果实挂满枝头，等待成熟"},
+    {"stage": 8, "name": "大树", "emoji": "🌳",
+     "desc": "枝繁叶茂，已经可以为人遮风挡雨"},
+]
+
+
+def get_tree_stage(level: int) -> dict:
+    idx = min(max(level, 1) - 1, len(TREE_STAGES) - 1)
+    return TREE_STAGES[idx]
+
+
+# -- 树语（Tree Whispers）：打卡后树对你的回应
+TREE_WHISPERS = {
+    "first": [
+        "你来了。一颗种子就这样被种下了——从今天起，我会陪着你。",
+        "第一颗种子入土了。往后每一天，你浇水，我长大。",
+        "嘿，我在这里等你很久了。一起开始这段路吧。",
+    ],
+    "normal": [
+        "你的脚步声传来，我抖了抖叶子——今天又见面了，真好。",
+        "又等到你了。今天窗外是什么天气不重要，你来了就好。",
+        "感觉到了吗？我好像又长高了一点。因为你来了。",
+        "今天的阳光很暖，但都不如你记得来看我这件事情暖。",
+        "每一片叶子都在说：谢谢你没有忘记我。",
+    ],
+    "streak_3": [
+        "连续三天！我的根已经开始扎进泥土深处了。",
+        "三天不间断，我已经不是当初那颗惴惴不安的种子了。",
+    ],
+    "streak_7": [
+        "七天。你知道这有多厉害吗？整整一周你都没有忘记我。",
+        "一周了！我的枝叶茂盛了不止一倍，都是你浇灌的。",
+    ],
+    "streak_14": [
+        "两周不间断的陪伴……我已经比当初高出很多了，你也一样吧？",
+        "连续十四天。这不是坚持，这是——你习惯了关照自己。",
+    ],
+    "streak_30": [
+        "一个月。整整一个月你都没有离开。我已经从种子长成了会开花的小树。",
+        "三十天的陪伴。你做到了最难的事情：每天都记得回来看看自己。",
+    ],
+    "level_up": [
+        "我升级啦！新的阶段，新的枝叶，都是因为你。",
+        "感觉到了吗？一阵生长的声音——我从内到外都不一样了。",
+    ],
+    "return_after_break": [
+        "你回来了。没关系，风会吹走落叶，而你还在——这是最重要的。",
+        "好久不见。我的叶子掉了几片，但你一来，新的就在冒出来。",
+    ],
+}
+
+
+def pick_whisper(streak: int, is_first: bool, is_level_up: bool, gap_days: int) -> str:
+    if is_first:
+        return random.choice(TREE_WHISPERS["first"])
+    if is_level_up:
+        return random.choice(TREE_WHISPERS["level_up"])
+    if gap_days >= 3:
+        return random.choice(TREE_WHISPERS["return_after_break"])
+    if streak >= 30:
+        return random.choice(TREE_WHISPERS["streak_30"])
+    if streak >= 14:
+        return random.choice(TREE_WHISPERS["streak_14"])
+    if streak >= 7:
+        return random.choice(TREE_WHISPERS["streak_7"])
+    if streak >= 3:
+        return random.choice(TREE_WHISPERS["streak_3"])
+    return random.choice(TREE_WHISPERS["normal"])

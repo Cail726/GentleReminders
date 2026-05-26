@@ -4,12 +4,12 @@
 {% set active = active_page|default('') %}
 <nav class="navbar admin">
     <a href="/admin/index" class="brand">
-        <span class="logo-icon">🛡️</span>管理后台
+        <span class="logo-icon">&#x1F6E1;</span>管理后台
     </a>
     <div class="nav-links">
         <a href="/admin/index"{% if active == 'index' %} class="active"{% endif %}>数据总览</a>
-        <a href="/admin/checkin-list"{% if active == 'checkin' %} class="active"{% endif %}>全员记录</a>
-        <a href="/admin/risk-screen" class="hide-mobile{% if active == 'risk' %} active{% endif %}">风险筛查</a>
+        <a href="/admin/trends"{% if active == 'trends' %} class="active"{% endif %}>每日趋势</a>
+        <a href="/admin/risk-overview" class="hide-mobile{% if active == 'risk' %} active{% endif %}">风险概况</a>
         <a href="/" class="hide-mobile">学生端</a>
         <button class="theme-toggle" onclick="GR.toggleTheme()" title="切换暗色模式">☽</button>
         <button onclick="handleLogout()">退出</button>

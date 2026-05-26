@@ -52,7 +52,7 @@
 {% endblock %}
 {% block content %}
 <div class="page-container letters-container">
-    <h2 style="margin-bottom:20px;">💌 我的信件</h2>
+    <h2 style="margin-bottom:20px;"><i data-lucide="mail" style="width:24px;height:24px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>我的信件</h2>
     <div id="lettersList">
         <p class="empty-state">还没有信件，等小树长大一些再来吧～</p>
     </div>
@@ -80,14 +80,15 @@
             data.forEach(l => {
                 html += '<div class="letter-card" onclick="showLetter(' + l.id + ')">' +
                     '<div class="lc-header">' +
-                    '<span class="lc-title">' + l.title + '</span>' +
-                    '<span class="lc-level">🌳 Lv.' + l.tree_level + '</span>' +
+                    '<span class="lc-title">' + GR.escHtml(l.title) + '</span>' +
+                    '<span class="lc-level"><i data-lucide="sprout" style="width:14px;height:14px;"></i> Lv.' + l.tree_level + '</span>' +
                     '</div>' +
-                    '<div class="lc-summary">' + (l.emotion_summary || '') + '</div>' +
+                    '<div class="lc-summary">' + GR.escHtml(l.emotion_summary || '') + '</div>' +
                     '<div class="lc-time">' + l.time + '</div>' +
                     '</div>';
             });
             wrap.innerHTML = html;
+            if (window.lucide) window.lucide.createIcons();
         } catch (e) { console.error(e); }
     }
 
@@ -100,14 +101,15 @@
             detail.style.display = 'block';
             detail.innerHTML =
                 '<div class="letter-detail">' +
-                '<div class="ld-title">' + l.title + '</div>' +
-                '<div class="ld-meta">🌳 小树 Lv.' + l.tree_level + ' · ' + l.time + '</div>' +
-                '<div class="ld-content">' + l.content.replace(/\n/g, '<br>') + '</div>' +
+                '<div class="ld-title">' + GR.escHtml(l.title) + '</div>' +
+                '<div class="ld-meta"><i data-lucide="sprout" style="width:15px;height:15px;display:inline-block;vertical-align:middle;"></i> 小树 Lv.' + l.tree_level + ' · ' + l.time + '</div>' +
+                '<div class="ld-content">' + GR.escHtml(l.content).replace(/\n/g, '<br>') + '</div>' +
                 '<div class="btn-group" style="margin-top:24px;">' +
-                '<button class="btn btn-ghost ripple" onclick="backToList()">← 返回列表</button>' +
+                '<button class="btn btn-ghost ripple" onclick="backToList()"><i data-lucide="arrow-left" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>返回列表</button>' +
                 '</div>' +
                 '</div>';
             detail.scrollIntoView({ behavior: 'smooth' });
+            if (window.lucide) window.lucide.createIcons();
         } catch (e) { console.error(e); }
     }
 

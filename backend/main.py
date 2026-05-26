@@ -8,7 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 Base.metadata.create_all(bind=engine)
 
-# Migration: add must_change_password column to admins (existing DBs)
+# Migration: add must_change_password column to admins + login_attempts table (existing DBs)
 from sqlalchemy import text, inspect as sa_inspect
 insp = sa_inspect(engine)
 if "admins" in insp.get_table_names():
@@ -17,6 +17,18 @@ if "admins" in insp.get_table_names():
         with engine.connect() as conn:
             conn.execute(text("ALTER TABLE admins ADD COLUMN must_change_password BOOLEAN NOT NULL DEFAULT 1"))
             conn.commit()
+
+# Migration: create login_attempts table for rate limiting
+if "login_attempts" not in insp.get_table_names():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE login_attempts (
+                ip TEXT NOT NULL,
+                attempt_time REAL NOT NULL
+            )
+        """))
+        conn.execute(text("CREATE INDEX idx_login_attempts_ip ON login_attempts(ip)"))
+        conn.commit()
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -28,7 +40,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "model"))
 # 项目根目录（基于当前文件位置，不依赖 CWD）
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SESSION_SECRET = os.environ.get("GR_SESSION_SECRET", "gr-2026-" + hashlib.sha256(os.urandom(32)).hexdigest()[:16])
+SESSION_SECRET = os.environ.get("GR_SESSION_SECRET") or "gr-2026-" + hashlib.sha256(os.urandom(32)).hexdigest()[:16]
 
 app = FastAPI(
     title="Gentle Reminders",
@@ -46,6 +58,20 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory=os.path.join(PROJECT_ROOT, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(PROJECT_ROOT, "frontend"))
+
+
+# -- CSRF 中间件：为所有 HTML 页面设置 csrf_token Cookie
+@app.middleware("http")
+async def csrf_middleware(request: Request, call_next):
+    response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if "text/html" in content_type and "csrf_token" not in request.cookies:
+        token = hashlib.sha256(os.urandom(32)).hexdigest()
+        response.set_cookie(
+            "csrf_token", token,
+            max_age=86400, samesite="strict", httponly=False, secure=False
+        )
+    return response
 
 
 @app.exception_handler(HTTPException)

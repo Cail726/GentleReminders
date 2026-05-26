@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计参考模板库 — Gentle Reminders</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f0f0f; color: #e0e0e0; min-height: 100vh;
+    padding: 40px 24px;
+  }
+  .gallery-header {
+    text-align: center; max-width: 720px; margin: 0 auto 48px;
+  }
+  .gallery-header h1 {
+    font-size: 40px; font-weight: 700; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #a8d8c8, #7eb8da, #c4a8d8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .gallery-header p {
+    font-size: 15px; color: #888; line-height: 1.7;
+  }
+  .cards {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 24px; max-width: 1100px; margin: 0 auto;
+  }
+  .card {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px;
+    overflow: hidden; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer; text-decoration: none; color: inherit; display: block;
+  }
+  .card:hover { transform: translateY(-6px); border-color: #444; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .card-preview {
+    height: 280px; overflow: hidden; position: relative;
+  }
+  .card-preview iframe {
+    width: 1400px; height: 900px; border: 0;
+    transform: scale(0.28); transform-origin: 0 0;
+    pointer-events: none;
+    border-radius: 0;
+  }
+  .card-info { padding: 20px 24px 24px; }
+  .card-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .card-info .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; margin-bottom: 8px;
+  }
+  .tag.calm { background: rgba(168,216,200,0.15); color: #a8d8c8; }
+  .tag.glass { background: rgba(255,255,255,0.08); color: #ccc; }
+  .tag.organic { background: rgba(224,176,128,0.15); color: #e0b080; }
+  .tag.elegant { background: rgba(160,168,184,0.15); color: #a0a8b8; }
+  .card-info p { font-size: 13px; color: #777; line-height: 1.6; }
+  .inspiration {
+    font-size: 11px; color: #555; margin-top: 8px;
+  }
+  @media (max-width: 768px) {
+    .cards { grid-template-columns: 1fr; }
+    .gallery-header h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="gallery-header">
+  <h1>Gentle Reminders<br>界面设计参考模板库</h1>
+  <p>以下是 4 种高端设计风格的首页概念稿，每套都可直接在浏览器中打开查看。<br>参考了 2025-2026 年度获奖应用的设计语言。</p>
+</div>
+
+<div class="cards">
+  <a href="concept-1-calm-minimal.html" class="card">
+    <div class="card-preview">
+      <iframe src="concept-1-calm-minimal.html" loading="lazy"></iframe>
+    </div>
+    <div class="card-info">
+      <span class="tag calm">Calm Minimal</span>
+      <h3>宁静极简风</h3>
+      <p>大留白、低对比、慢节奏。参考 Opera Air、ClaraAI 的「不打扰」设计理念。适合治愈类产品。</p>
+      <div class="inspiration">灵感来源：Opera Air (iF Design Award 2026)、ClaraAI</div>
+    </div>
+  </a>
+
+  <a href="concept-2-glass-premium.html" class="card">
+    <div class="card-preview">
+      <iframe src="concept-2-glass-premium.html" loading="lazy"></iframe>
+    </div>
+    <div class="card-info">
+      <span class="tag glass">Glass Premium</span>
+      <h3>玻璃质感风</h3>
+      <p>多层毛玻璃、细腻阴影、微妙的色彩渐变。在现有风格上升级为更精致的高端感。</p>
+      <div class="inspiration">灵感来源：Dropbox Brand (CSSDA 2025 #1)、Apple Design Awards</div>
+    </div>
+  </a>
+
+  <a href="concept-3-organic-warm.html" class="card">
+    <div class="card-preview">
+      <iframe src="concept-3-organic-warm.html" loading="lazy"></iframe>
+    </div>
+    <div class="card-info">
+      <span class="tag organic">Organic Warm</span>
+      <h3>自然有机风</h3>
+      <p>暖色调、有机曲线、手绘感元素。弱化「科技产品」冷感，营造被自然包裹的温暖体验。</p>
+      <div class="inspiration">灵感来源：Headspace、Katha Room (Apple Design Award Finalist)</div>
+    </div>
+  </a>
+
+  <a href="concept-4-dark-elegant.html" class="card">
+    <div class="card-preview">
+      <iframe src="concept-4-dark-elegant.html" loading="lazy"></iframe>
+    </div>
+    <div class="card-info">
+      <span class="tag elegant">Dark Elegant</span>
+      <h3>暗夜优雅风</h3>
+      <p>深邃暗色背景、精细的边框层次、荧光点缀。参考 Opera GX 的 Underwave 设计语言。</p>
+      <div class="inspiration">灵感来源：Opera GX (iF UI Award 2026)、Linear、Vercel</div>
+    </div>
+  </a>
+</div>
+
+<div style="text-align:center;margin-top:48px;color:#555;font-size:12px;">
+  <p>每个概念页面都是独立 HTML 文件，可直接用浏览器打开查看完整效果。</p>
+  <p style="margin-top:8px;">所有页面使用纯 CSS 实现，无外部依赖，可安全离线查看。</p>
+</div>
+</body>
+</html>

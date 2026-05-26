@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept 4 — 暗夜优雅风 | Gentle Reminders</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#0c0c0e;color:#c8ccd4;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  /* Subtle grid texture */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+  .app{max-width:480px;width:100%}
+
+  /* Dark card */
+  .dk-card{
+    background:linear-gradient(135deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));
+    border-radius:28px;padding:40px 28px 32px;margin-bottom:16px;
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.02),0 24px 64px rgba(0,0,0,0.4);
+    text-align:center;position:relative;overflow:hidden;
+  }
+  /* Glow accent */
+  .dk-card::after{
+    content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+    background:radial-gradient(circle at 50% 30%,rgba(94,179,163,0.06),transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Tree display */
+  .tree-display{
+    width:100px;height:100px;margin:0 auto 16px;border-radius:50%;
+    background:linear-gradient(135deg,rgba(94,179,163,0.12),rgba(126,184,218,0.08));
+    display:flex;align-items:center;justify-content:center;font-size:48px;
+    border:2px solid rgba(94,179,163,0.2);
+    box-shadow:0 0 40px rgba(94,179,163,0.08);
+    position:relative;z-index:1;
+  }
+  .dk-card h2{font-size:20px;font-weight:700;color:#e8ecf0;letter-spacing:-0.3px;position:relative;z-index:1}
+  .dk-card .sub{font-size:12px;color:#6b7280;margin:4px 0 16px;position:relative;z-index:1}
+
+  /* Stage badge — elegant pill */
+  .badge-row{display:flex;justify-content:center;gap:8px;margin-bottom:18px;position:relative;z-index:1}
+  .badge{
+    padding:5px 14px;border-radius:16px;font-size:11px;font-weight:600;
+    border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);
+  }
+  .badge.active{background:rgba(94,179,163,0.1);border-color:rgba(94,179,163,0.25);color:#5eb3a3}
+
+  /* Progress — sleek bar */
+  .progress-wrap{margin:0 0 16px;position:relative;z-index:1}
+  .progress-info{display:flex;justify-content:space-between;font-size:11px;color:#555;margin-bottom:6px}
+  .progress-track{height:2px;border-radius:2px;background:rgba(255,255,255,0.06)}
+  .progress-fill{
+    height:100%;border-radius:2px;
+    background:linear-gradient(90deg,#5eb3a3,#7eb8da);
+    box-shadow:0 0 8px rgba(94,179,163,0.4);transition:width 0.8s ease;
+  }
+
+  /* Whisper — dark style */
+  .dk-whisper{
+    background:rgba(94,179,163,0.04);border-radius:16px;padding:18px 20px;margin:16px 0 0;
+    border:1px solid rgba(94,179,163,0.08);text-align:left;
+    font-size:13px;line-height:1.8;color:#8892a0;font-style:italic;position:relative;z-index:1;
+  }
+  .dk-whisper .dw-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;display:block}
+
+  /* Action cards */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .act{
+    background:rgba(255,255,255,0.02);border-radius:20px;padding:22px 16px;text-decoration:none;
+    color:inherit;border:1px solid rgba(255,255,255,0.05);
+    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);text-align:center;
+  }
+  .act:hover{
+    background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1);
+    transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.3);
+  }
+  .act .a-icon{
+    width:40px;height:40px;border-radius:12px;margin:0 auto 10px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+  }
+  .act .a-icon.c1{background:rgba(94,179,163,0.1);color:#5eb3a3}
+  .act .a-icon.c2{background:rgba(126,184,218,0.1);color:#7eb8da}
+  .act .a-icon.c3{background:rgba(200,160,120,0.1);color:#c8a078}
+  .act .a-icon.c4{background:rgba(180,140,200,0.1);color:#b48cc8}
+  .act .a-title{font-size:14px;font-weight:600;color:#d0d4da}
+  .act .a-desc{font-size:11px;color:#555;margin-top:3px}
+
+  /* Vitality dots */
+  .v-dots{display:flex;justify-content:center;gap:5px;margin-top:16px;position:relative;z-index:1}
+  .v-dot{width:8px;height:8px;border-radius:50%}
+  .v-dot.on{background:#5eb3a3;box-shadow:0 0 8px rgba(94,179,163,0.5)}
+  .v-dot.off{background:rgba(255,255,255,0.08)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="dk-card">
+    <div class="tree-display">🌿</div>
+    <h2>心灵小树</h2>
+    <p class="sub">每一次陪伴，都是无声的成长</p>
+
+    <div class="badge-row">
+      <span class="badge">🌰 种子</span>
+      <span class="badge">🌱 萌芽</span>
+      <span class="badge active">🌿 幼苗</span>
+      <span class="badge">🪴 小树</span>
+      <span class="badge">🌳 大树</span>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-info"><span>成长进度</span><span>62%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:62%"></div></div>
+    </div>
+
+    <div class="dk-whisper">
+      <span class="dw-label">✦ 此刻的树语</span>
+      夜深了。闭上眼睛吧，我的根在泥土里守着你的梦。
+    </div>
+
+    <div class="v-dots">
+      <div class="v-dot on"></div><div class="v-dot on"></div><div class="v-dot on"></div>
+      <div class="v-dot on"></div><div class="v-dot off"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a href="#" class="act"><span class="a-icon c1">✧</span><span class="a-title">情绪打卡</span><span class="a-desc">记录今日心情</span></a>
+    <a href="#" class="act"><span class="a-icon c2">✉</span><span class="a-title">我的信件</span><span class="a-desc">小树写给你的信</span></a>
+    <a href="#" class="act"><span class="a-icon c3">↗</span><span class="a-title">趋势分析</span><span class="a-desc">情绪变化趋势</span></a>
+    <a href="#" class="act"><span class="a-icon c4">◈</span><span class="a-title">心理评估</span><span class="a-desc">MSF-XGB 分析</span></a>
+  </div>
+</div>
+</body>
+</html>

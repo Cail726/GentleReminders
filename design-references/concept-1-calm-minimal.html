@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept 1 — 宁静极简风 | Gentle Reminders</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background: #f7f8f9; color: #2c3e50; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app{max-width:460px;width:100%;padding:40px 28px}
+
+  /* Hero — huge breathing room */
+  .hero{text-align:center;margin-bottom:56px}
+  .stage-emoji{
+    font-size:72px;display:block;margin-bottom:24px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .hero h1{font-size:26px;font-weight:600;letter-spacing:-0.3px;margin-bottom:6px;color:#1a1a2e}
+  .hero .sub{font-size:14px;color:#94a3b8;font-weight:400}
+
+  /* Daily whisper — minimal card */
+  .whisper{
+    background:#fff;border-radius:24px;padding:28px 26px;margin-bottom:40px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.03);
+    border:1px solid rgba(0,0,0,0.04);
+  }
+  .whisper .w-icon{font-size:20px;margin-bottom:10px;opacity:0.5}
+  .whisper .w-text{font-size:15px;line-height:1.8;color:#475569;font-style:italic}
+  .whisper .w-time{font-size:11px;color:#94a3b8;margin-top:12px;text-transform:uppercase;letter-spacing:1px}
+
+  /* Progress — super subtle */
+  .stage-info{margin-bottom:40px}
+  .stage-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .stage-name{font-size:14px;font-weight:600;color:#1a1a2e}
+  .stage-pct{font-size:12px;color:#94a3b8}
+  .progress-track{height:3px;border-radius:3px;background:#e8ecf1;overflow:hidden}
+  .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#a8d8c8,#5eb3a3);transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+
+  /* Action cards — minimal */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .act{
+    background:#fff;border-radius:20px;padding:26px 20px;text-decoration:none;color:inherit;
+    border:1px solid rgba(0,0,0,0.04);text-align:center;
+    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    box-shadow:0 1px 3px rgba(0,0,0,0.03);
+  }
+  .act:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.08)}
+  .act .a-icon{font-size:28px;display:block;margin-bottom:10px}
+  .act .a-title{font-size:14px;font-weight:600;color:#1a1a2e}
+  .act .a-desc{font-size:11px;color:#94a3b8;margin-top:4px}
+
+  /* Bottom nav */
+  .nav{
+    display:flex;justify-content:center;gap:36px;margin-top:48px;padding-top:24px;
+    border-top:1px solid rgba(0,0,0,0.04);
+  }
+  .nav a{
+    font-size:12px;color:#94a3b8;text-decoration:none;font-weight:500;
+    transition:color 0.2s;padding:4px 0;
+  }
+  .nav a:hover,.nav a.on{color:#5eb3a3}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hero">
+    <span class="stage-emoji">🌿</span>
+    <h1>你好，小树在等你</h1>
+    <p class="sub">今天也一起来吧</p>
+  </div>
+
+  <div class="whisper">
+    <div class="w-icon">☀</div>
+    <p class="w-text">晨风拂过树梢——<br>新的一天，我在等你。</p>
+    <p class="w-time">早安 · 清晨 7:42</p>
+  </div>
+
+  <div class="stage-info">
+    <div class="stage-row"><span class="stage-name">🌰 幼苗 → 小树</span><span class="stage-pct">62%</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:62%"></div></div>
+  </div>
+
+  <div class="actions">
+    <a href="#" class="act"><span class="a-icon">✧</span><span class="a-title">情绪打卡</span><span class="a-desc">记录今日心情</span></a>
+    <a href="#" class="act"><span class="a-icon">✉</span><span class="a-title">我的信件</span><span class="a-desc">小树写给你的信</span></a>
+    <a href="#" class="act"><span class="a-icon">↗</span><span class="a-title">趋势分析</span><span class="a-desc">情绪变化趋势</span></a>
+    <a href="#" class="act"><span class="a-icon">◈</span><span class="a-title">心理评估</span><span class="a-desc">了解自己</span></a>
+  </div>
+
+  <div class="nav">
+    <a href="#" class="on">首页</a><a href="#">打卡</a><a href="#">趋势</a><a href="#">我的</a>
+  </div>
+</div>
+</body>
+</html>

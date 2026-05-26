@@ -54,12 +54,12 @@
 {% endblock %}
 {% block content %}
 <div class="page-container trends-container">
-    <h1 class="page-title">📈 情绪趋势分析</h1>
+    <h1 class="page-title"><i data-lucide="trending-up" style="width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>情绪趋势分析</h1>
     <p class="page-subtitle">观察你的情绪变化，更好地了解自己</p>
 
     <div id="emptyState" style="display:none;">
         <div class="card" style="text-align:center;">
-            <div style="font-size:56px;margin-bottom:12px;">📝</div>
+            <div style="font-size:56px;margin-bottom:12px;"><i data-lucide="pen-line" style="width:56px;height:56px;"></i></div>
             <h3 style="margin-bottom:8px;">还没有打卡记录</h3>
             <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">去情绪打卡积累数据后，这里将展示你的情绪变化趋势</p>
             <a href="/checkin" class="btn btn-primary ripple">去打卡</a>
@@ -70,12 +70,12 @@
         <div class="summary-cards" id="summaryCards"></div>
         <div class="chart-row">
             <div class="chart-panel">
-                <h3>📊 情绪变化趋势</h3>
+                <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>情绪变化趋势</h3>
                 <p class="chart-subtitle">每日情绪均分 · 分数越高状态越好</p>
                 <div class="chart-box-inner" id="trendChart"></div>
             </div>
             <div class="chart-panel">
-                <h3>🎯 情绪分布</h3>
+                <h3><i data-lucide="crosshair" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>情绪分布</h3>
                 <p class="chart-subtitle">各情绪类型占比</p>
                 <div class="chart-box-inner" id="pieChart"></div>
             </div>
@@ -106,14 +106,15 @@
     function renderSummary() {
         const d = trendData;
         const cards = [
-            {icon:'📝', value:d.total_checkins, label:'累计打卡'},
-            {icon:'📊', value:d.total_avg, label:'平均心情分'},
-            {icon:'🔥', value:d.streak + '天', label:'连续打卡'},
-            {icon:'🏷️', value:d.top_emotion, label:'最常见情绪'},
+            {icon:'pen-line', value:d.total_checkins, label:'累计打卡', color:'var(--primary)'},
+            {icon:'bar-chart-3', value:d.total_avg, label:'平均心情分', color:'var(--secondary)'},
+            {icon:'flame', value:d.streak + '天', label:'连续打卡', color:'var(--accent)'},
+            {icon:'tag', value:d.top_emotion, label:'最常见情绪', color:'#7EB8DA'},
         ];
         document.getElementById('summaryCards').innerHTML = cards.map(c =>
-            '<div class="mini-stat"><div class="stat-icon">' + c.icon + '</div><div class="stat-value">' + c.value + '</div><div class="stat-label">' + c.label + '</div></div>'
+            '<div class="mini-stat"><div class="stat-icon"><i data-lucide="' + c.icon + '" style="width:28px;height:28px;color:' + (c.color||'var(--text-muted)') + ';"></i></div><div class="stat-value">' + c.value + '</div><div class="stat-label">' + c.label + '</div></div>'
         ).join('');
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function renderTrendChart() {
@@ -200,13 +201,14 @@
         });
 
         document.getElementById('weekCard').innerHTML =
-            '<h3>📅 近7天概览</h3>' +
+            '<h3><i data-lucide="calendar" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>近7天概览</h3>' +
             '<div class="week-stats">' +
             '<div class="week-stat good"><div class="wv">' + d.week_count + '</div><div class="wl">近7天打卡</div></div>' +
             '<div class="week-stat"><div class="wv" style="color:' + levelColor + ';">' + d.week_avg + '</div><div class="wl">近7天均分</div></div>' +
             '<div class="week-stat"><div class="wv">' + d.streak + '天</div><div class="wl">当前连续</div></div>' +
             '</div>' +
             '<div style="margin-top:18px;"><p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">情绪分布占比</p>' + barsHtml + '</div>';
+        if (window.lucide) window.lucide.createIcons();
     }
 
     initPage();

@@ -1,9 +1,11 @@
 """心理树 & 信件路由"""
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models.database import get_db
-from models.models import Tree, Letter
+from models.models import Tree, Letter, CheckIn
 from dependencies import get_current_user
+from config import get_tree_stage
 
 router = APIRouter()
 
@@ -12,8 +14,35 @@ router = APIRouter()
 def get_tree_info(user=Depends(get_current_user), db: Session = Depends(get_db)):
     tree = db.query(Tree).filter(Tree.user_id == user.id).first()
     if not tree:
-        return {"level": 1, "exp": 0, "health": 100}
-    return {"level": tree.level, "exp": tree.exp, "health": tree.health}
+        return {
+            "level": 1, "exp": 0, "health": 100,
+            "stage": 1, "stage_name": "种子", "stage_emoji": "🌰",
+            "stage_desc": "一颗种子在泥土中沉睡，等待第一缕阳光",
+        }
+
+    last_checkin = (
+        db.query(CheckIn)
+        .filter(CheckIn.user_id == user.id)
+        .order_by(CheckIn.create_time.desc())
+        .first()
+    )
+    health = tree.health
+    if last_checkin:
+        days_since = (date.today() - last_checkin.create_time.date()).days
+        if days_since > 3:
+            decay = (days_since - 3) * 2
+            health = max(60, tree.health - decay)
+
+    stage = get_tree_stage(tree.level)
+    return {
+        "level": tree.level,
+        "exp": tree.exp,
+        "health": health,
+        "stage": stage["stage"],
+        "stage_name": stage["name"],
+        "stage_emoji": stage["emoji"],
+        "stage_desc": stage["desc"],
+    }
 
 
 @router.get("/api/letters")
