@@ -530,25 +530,58 @@ body {
 /* Admin auth override */
 .auth-card.admin-auth .brand-icon { box-shadow: 0 0 0 8px rgba(30,58,95,0.08); }
 
-/* ----- Kaleidoscope Canvas (首页核心) ----- */
-.kaleidoscope-stage { text-align: center; padding: 8px 0 20px; }
-.kaleidoscope-canvas-wrap {
-    width: 220px; height: 220px; margin: 0 auto 20px;
-    position: relative;
-}
-.kaleidoscope-canvas-wrap canvas {
-    width: 100%; height: 100%; border-radius: 50%;
+/* ----- Tree Display (首页核心) ----- */
+.tree-stage { text-align: center; padding: 8px 0 20px; }
+.tree-display {
+    width: 172px; height: 172px;
+    background: var(--brand-50);
+    border-radius: var(--radius-full); margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 76px;
     box-shadow:
         0 0 0 6px var(--primary-soft),
         0 8px 40px rgba(107,143,124,0.15);
+    transition: all 0.5s var(--ease-bounce);
+    position: relative;
     animation: softGlow 4s ease-in-out infinite;
 }
+.tree-display:hover { transform: scale(1.05); }
 @keyframes softGlow {
     0%, 100% { box-shadow: 0 0 0 6px var(--primary-soft), 0 8px 40px rgba(107,143,124,0.15); }
     50%      { box-shadow: 0 0 0 12px var(--primary-soft), 0 8px 56px rgba(107,143,124,0.25); }
 }
-[data-theme="dark"] .kaleidoscope-canvas-wrap canvas {
-    box-shadow: 0 0 0 6px var(--primary-soft), 0 8px 40px rgba(0,0,0,0.3);
+[data-theme="dark"] .tree-display {
+    background: var(--brand-50);
+    box-shadow: 0 0 0 6px rgba(126,184,160,0.10), 0 8px 40px rgba(0,0,0,0.3);
+}
+
+/* Tree particles */
+.tree-particles {
+    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+    pointer-events: none; border-radius: 50%; overflow: hidden;
+}
+.tree-particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--primary-light); opacity: 0;
+    animation: particleDrift 3s ease-in-out infinite;
+}
+@keyframes particleDrift {
+    0% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 0.7; }
+    70% { opacity: 0.3; }
+    100% { opacity: 0; transform: translate(var(--px), var(--py)); }
+}
+[data-theme="dark"] .tree-particle { background: var(--primary); }
+
+/* Growth bar on homepage */
+.growth-bar {
+    height: 4px; border-radius: 4px; background: var(--bg-input);
+    margin: 16px auto 0; max-width: 260px; overflow: hidden;
+}
+.growth-bar .growth-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--secondary-light));
+    transition: width 0.7s var(--ease-bounce);
 }
 
 /* ----- Textarea (Check-in page) ----- */
@@ -741,6 +774,8 @@ body {
     .auth-card .brand-icon { width: 56px; height: 56px; font-size: 28px; }
 
     .card { padding: 22px 18px; }
+
+    .tree-display { width: 140px; height: 140px; font-size: 60px; }
 
     .chart-row { grid-template-columns: 1fr; }
     .chart-box { height: 300px; }
