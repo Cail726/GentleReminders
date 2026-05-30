@@ -157,11 +157,11 @@
             },
             series: [{
                 type: 'line', data: scores, smooth: true,
-                lineStyle: { color: '#5EB3A3', width: 2.5 },
-                itemStyle: { color: '#5EB3A3' },
+                lineStyle: { color: '#6B8F7C', width: 2.5 },
+                itemStyle: { color: '#6B8F7C' },
                 areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: 'rgba(94,179,163,0.25)' },
-                    { offset: 1, color: 'rgba(94,179,163,0.02)' }
+                    { offset: 0, color: 'rgba(107,143,124,0.25)' },
+                    { offset: 1, color: 'rgba(107,143,124,0.02)' }
                 ])},
                 markLine: {
                     silent: true,
@@ -176,7 +176,7 @@
         const dom = document.getElementById('pieChart');
         const chart = echarts.init(dom);
         const dist = trendData.distribution;
-        const data = Object.entries(dist).map(([k, v]) => ({ name: k, value: v, itemStyle: { color: emoColors[k] || '#94a3b8' } }));
+        const data = Object.entries(dist).map(([k, v]) => ({ name: k, value: v, itemStyle: { color: emoColors[k] || '#9B93A8' } }));
 
         chart.setOption({
             tooltip: { trigger: 'item', formatter: '{b}: {c} 次 ({d}%)' },
@@ -191,7 +191,7 @@
 
     function renderWeekCard() {
         const d = trendData;
-        const levelColor = d.week_avg >= 3.5 ? '#4ECDC4' : d.week_avg >= 2.5 ? '#F0A050' : '#E07B7B';
+        const levelColor = d.week_avg >= 3.5 ? '#6B8F7C' : d.week_avg >= 2.5 ? '#C8927A' : '#E07B7B';
         let barsHtml = '';
         const sorted = Object.entries(d.distribution).sort((a, b) => b[1] - a[1]);
         const total = d.total_checkins || 1;

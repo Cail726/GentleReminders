@@ -129,8 +129,8 @@
     /* ========== Shared constants ========== */
 
     window.GR.EMO_COLORS = {
-        '开心': '#4ECDC4', '放松': '#8FD4BE', '平静': '#7EB8DA',
-        '低落': '#E07B7B', '焦虑': '#F0A050', '疲惫': '#9B8EC4'
+        '开心': '#F59E0B', '放松': '#84CC9E', '平静': '#6B8F7C',
+        '低落': '#6366F1', '焦虑': '#F97316', '疲惫': '#8B5CF6'
     };
 
     window.GR.EMO_EMOJIS = {
@@ -143,11 +143,7 @@
         '低落': 'cloud-rain', '焦虑': 'zap', '疲惫': 'moon'
     };
 
-    window.GR.TREE_EMOJIS = ['🌱', '🌿', '🪴', '🌿', '🪴', '🌳', '🌳', '🌲', '🌲', '🌲'];
-
-    window.GR.getTreeEmoji = function (level) {
-        return level <= 10 ? window.GR.TREE_EMOJIS[Math.max(0, level - 1)] : '🌲';
-    };
+    /* Kaleidoscope constants — fragment count drives canvas rendering per-user */
 
     /* Refresh Lucide icons after dynamic content changes */
     window.GR.refreshIcons = function () {

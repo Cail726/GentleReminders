@@ -32,7 +32,9 @@ GentleReminders/
 ├─ model/        # MSF-XGB model code
 ├─ data/         # SQLite database files
 ├─ static/       # images, css, icons
-└─ claude.md     # THIS RULE FILE
+├─ docs/         # 文档中心 (课设/互联网+/大创原件)
+├─ design-references/  # UI design concept references
+└─ CLAUDE.md     # THIS RULE FILE
 
 ### 2.2 代码规范
 - All filenames: English only, no Chinese, no spaces

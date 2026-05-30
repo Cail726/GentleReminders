@@ -12,9 +12,9 @@
         display: inline-block; padding: 4px 12px; border-radius: 12px;
         font-size: 12px; font-weight: 600; color: #fff;
     }
-    .confidence-badge.high { background: #4ECDC4; }
+    .confidence-badge.high { background: #6B8F7C; }
     .confidence-badge.medium { background: #7EB8DA; }
-    .confidence-badge.low { background: #F0A050; }
+    .confidence-badge.low { background: #C8927A; }
     .confidence-badge.insufficient { background: #E07B7B; }
 
     .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -23,15 +23,15 @@
         text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
         border-top: 4px solid #ccc;
     }
-    .score-card.green { border-top-color: #4ECDC4; }
-    .score-card.yellow { border-top-color: #F0A050; }
+    .score-card.green { border-top-color: #6B8F7C; }
+    .score-card.yellow { border-top-color: #C8927A; }
     .score-card.orange { border-top-color: #E07B7B; }
     .score-card.red { border-top-color: #D94444; }
     .score-card .sc-name { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
     .score-card .sc-value { font-size: 28px; font-weight: 800; }
     .score-card .sc-label { font-size: 11px; color: var(--text-muted); }
-    .score-card.green .sc-value { color: #4ECDC4; }
-    .score-card.yellow .sc-value { color: #F0A050; }
+    .score-card.green .sc-value { color: #6B8F7C; }
+    .score-card.yellow .sc-value { color: #C8927A; }
     .score-card.orange .sc-value { color: #E07B7B; }
     .score-card.red .sc-value { color: #D94444; }
 
@@ -68,16 +68,16 @@
 {% endblock %}
 {% block content %}
 <div class="page-container assess-container">
-    <h1 class="page-title"><i data-lucide="brain" style="width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>MSF-XGB 心理评估</h1>
-    <p class="page-subtitle">多源特征融合 · XGBoost 模型 · 综合心理健康指数</p>
+    <h1 class="page-title"><i data-lucide="brain" style="width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>心理状态评估</h1>
+    <p class="page-subtitle">综合你的日常记录，帮你更好地了解自己</p>
 
     <div class="notice-box" style="margin-bottom:24px;">
         <i data-lucide="alert-triangle" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> <strong>重要提示：</strong>本评估结果由机器学习模型基于你的打卡记录、日记内容和量表数据生成，<strong>仅用于自我了解和状态描述，不构成任何医学或心理学诊断</strong>。数据越充分，评估越准确。
     </div>
 
     <div id="loadingArea" style="display:none;text-align:center;padding:40px;">
-        <div class="tree-display" style="margin:0 auto 20px;"><i data-lucide="loader-2" style="width:48px;height:48px;animation:spin 1.5s linear infinite;"></i></div>
-        <p style="color:var(--text-secondary);">MSF-XGBoost 模型正在分析你的多源数据...</p>
+        <div style="width:80px;height:80px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><i data-lucide="loader-2" style="width:48px;height:48px;animation:spin 1.5s linear infinite;"></i></div>
+        <p style="color:var(--text-secondary);">正在整合你的打卡记录、日记和量表数据...</p>
         <div class="progress-bar" style="max-width:300px;margin:12px auto 0;">
             <div class="progress-fill" style="width:60%;animation: shimmer 1.5s infinite;"></div>
         </div>
@@ -87,7 +87,7 @@
         <div class="card" style="text-align:center;">
             <div style="font-size:56px;margin-bottom:12px;"><i data-lucide="microscope" style="width:56px;height:56px;"></i></div>
             <h3 style="margin-bottom:8px;">尚未进行心理评估</h3>
-            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">点击下方按钮，MSF-XGBoost 模型将融合你的打卡记录、<br>日记内容和量表数据进行综合分析。</p>
+            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">综合你的情绪打卡、日记内容和量表数据，<br>帮你看到自己的心理状态全貌。</p>
             <button class="btn btn-primary btn-lg ripple" onclick="runAssessment()"><i data-lucide="rocket" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>开始评估</button>
         </div>
         <div id="historyCard" style="display:none;margin-top:20px;"></div>
@@ -139,7 +139,7 @@
         'emotional_stability':'情绪稳定性','social_engagement':'社交参与度',
         'stress_resilience':'压力承受力','sleep_quality':'睡眠质量','overall_wellbeing':'综合心理健康'
     };
-    const LEVEL_COLORS = {green:'#4ECDC4', yellow:'#F0A050', orange:'#E07B7B', red:'#D94444'};
+    const LEVEL_COLORS = {green:'#6B8F7C', yellow:'#C8927A', orange:'#E07B7B', red:'#D94444'};
     const CONF_LABELS = {high:'数据充分', medium:'数据适中', low:'数据较少', insufficient:'数据不足'};
 
     async function initPage() {
@@ -262,10 +262,10 @@
             series: [{
                 type: 'bar', data: values.reverse().map(v => ({
                     value: v,
-                    itemStyle: { color: v >= 75 ? '#4ECDC4' : v >= 55 ? '#7EB8DA' : v >= 35 ? '#F0A050' : '#E07B7B', borderRadius: [0, 6, 6, 0] }
+                    itemStyle: { color: v >= 75 ? '#6B8F7C' : v >= 55 ? '#7EB8DA' : v >= 35 ? '#C8927A' : '#E07B7B', borderRadius: [0, 6, 6, 0] }
                 })), barWidth: 20,
                 markLine: { silent: true, symbol: 'none', data: [
-                    { xAxis: 75, lineStyle: { color: '#4ECDC4', type: 'dashed', width: 1 }, label: { formatter: '良好', fontSize: 10 } },
+                    { xAxis: 75, lineStyle: { color: '#6B8F7C', type: 'dashed', width: 1 }, label: { formatter: '良好', fontSize: 10 } },
                     { xAxis: 55, lineStyle: { color: '#9CA3AF', type: 'dashed', width: 1 }, label: { formatter: '一般', fontSize: 10 } }
                 ]}
             }]

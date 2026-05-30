@@ -50,18 +50,43 @@
         background: var(--bg-card); padding: 16px 18px; border-radius: var(--radius-sm);
         border: 1px solid var(--border-light); border-left: 4px solid #ccc;
     }
-    .dim-card.green { border-left-color: #4ECDC4; }
-    .dim-card.yellow { border-left-color: #F0A050; }
+    .dim-card.green { border-left-color: #6B8F7C; }
+    .dim-card.yellow { border-left-color: #C8927A; }
     .dim-card.orange { border-left-color: #E07B7B; }
     .dim-card.red { border-left-color: #D94444; }
     .dim-card .dim-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
     .dim-card .dim-score { font-size: 22px; font-weight: 800; margin-bottom: 2px; }
     .dim-card .dim-label { font-size: 12px; color: var(--text-muted); }
-    .dim-card .dim-desc { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6; }
-    .dim-card.green .dim-score { color: #4ECDC4; }
-    .dim-card.yellow .dim-score { color: #F0A050; }
+    .dim-card .dim-desc { font-size: 13px; color: var(--text); margin-top: 6px; line-height: 1.8; }
+    .dim-card .dim-advice {
+        font-size: 12px; color: var(--primary-dark); margin-top: 8px; padding-top: 8px;
+        border-top: 1px dashed var(--border-light); line-height: 1.6;
+    }
+    .dim-card.green .dim-score { color: #6B8F7C; }
+    .dim-card.yellow .dim-score { color: #C8927A; }
     .dim-card.orange .dim-score { color: #E07B7B; }
     .dim-card.red .dim-score { color: #D94444; }
+
+    .analysis-card {
+        background: var(--bg-card); padding: 24px 28px; border-radius: var(--radius);
+        border: 1px solid var(--border-light); margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+    }
+    .analysis-card h3 {
+        font-family: var(--font-serif); font-size: 17px; font-weight: 700;
+        color: var(--text); margin-bottom: 12px;
+    }
+    .analysis-card .analysis-body {
+        font-size: 15px; color: var(--text-secondary); line-height: 2;
+        font-family: var(--font-serif);
+    }
+    .analysis-card .analysis-tags {
+        display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap;
+    }
+    .analysis-card .analysis-tag {
+        font-size: 13px; padding: 4px 14px; border-radius: 14px;
+        background: var(--primary-soft); color: var(--primary-dark);
+    }
 
     .chart-box.radar { width: 100%; height: 420px; margin: 0 auto 20px; }
 
@@ -88,6 +113,7 @@
 
     <div id="resultArea" style="display:none;">
         <div class="result-header" id="resultHeader"></div>
+        <div class="analysis-card" id="analysisCard" style="display:none;"></div>
         <div class="chart-box radar" id="radarChart"></div>
         <div class="dim-result" id="dimResults"></div>
         <div class="card" id="historyCard" style="display:none;">
@@ -209,8 +235,22 @@
         const badgeColor = res.overall.level;
         document.getElementById('resultHeader').innerHTML =
             '<div class="result-overall-badge ' + badgeColor + '">' + res.overall.label + '</div>' +
-            '<p style="color:var(--text-secondary);font-size:14px;">综合均分 <strong style="font-size:24px;color:' + LEVEL_COLORS[badgeColor] + ';">' + res.total_score + '</strong> / 5.0 · ' + (res.time||'') + '</p>' +
-            '<p style="font-size:13px;color:var(--text-muted);max-width:500px;margin:8px auto 0;">' + res.overall.desc + '</p>';
+            '<p style="color:var(--text-secondary);font-size:14px;">综合均分 <strong style="font-size:24px;color:' + LEVEL_COLORS[badgeColor] + ';">' + res.total_score + '</strong> / 5.0 · ' + (res.time||'') + '</p>';
+
+        // 整体综合分析卡片
+        var analysis = res.analysis || {};
+        if (analysis.summary) {
+            document.getElementById('analysisCard').style.display = 'block';
+            document.getElementById('analysisCard').innerHTML =
+                '<h3><i data-lucide="file-text" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:6px;"></i>整体分析</h3>' +
+                '<p class="analysis-body">' + analysis.summary + '</p>' +
+                '<div class="analysis-tags">' +
+                '<span class="analysis-tag">' + (analysis.highlight_best || '') + '</span>' +
+                '<span class="analysis-tag">' + (analysis.highlight_worst || '') + '</span>' +
+                '</div>';
+        } else {
+            document.getElementById('analysisCard').style.display = 'none';
+        }
 
         setTimeout(() => {
             const chartDom = document.getElementById('radarChart');
@@ -232,7 +272,7 @@
                 },
                 series: [{
                     type: 'radar',
-                    data: [{ value: scores, name: '你的得分', areaStyle: { color: 'rgba(94,179,163,0.25)' }, lineStyle: { color: '#5EB3A3', width: 2 }, itemStyle: { color: '#5EB3A3' } }]
+                    data: [{ value: scores, name: '你的得分', areaStyle: { color: 'rgba(107,143,124,0.25)' }, lineStyle: { color: '#6B8F7C', width: 2 }, itemStyle: { color: '#6B8F7C' } }]
                 }]
             });
             window.addEventListener('resize', () => chart.resize());
@@ -246,7 +286,8 @@
                 '<div class="dim-name"><i data-lucide="' + (dimIcons2[dim]||'help-circle') + '" style="width:18px;height:18px;"></i> ' + dim + '</div>' +
                 '<div class="dim-score">' + score.toFixed(1) + '</div>' +
                 '<div class="dim-label">' + interp.label + '</div>' +
-                '<div class="dim-desc">' + interp.desc + '</div></div>';
+                '<div class="dim-desc">' + interp.desc + '</div>' +
+                (interp.advice ? '<div class="dim-advice">' + interp.advice + '</div>' : '') + '</div>';
         }
         document.getElementById('dimResults').innerHTML = dimHtml;
         if (window.lucide) window.lucide.createIcons();
