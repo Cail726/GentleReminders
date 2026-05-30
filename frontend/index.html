@@ -45,14 +45,16 @@
 
     .daily-whisper {
         margin: 20px auto 0; max-width: 360px; padding: 18px 22px;
-        border-radius: var(--radius); background: var(--primary-soft);
+        border-radius: var(--radius);
+        background: var(--primary-soft);
+        border: 1px solid rgba(107,143,124,0.12);
         display: flex; align-items: flex-start; gap: 10px;
         text-align: left; font-size: 14px; color: var(--primary-dark);
         line-height: 1.8; font-style: italic;
         animation: fadeInUp 0.5s var(--ease);
     }
-    .daily-whisper .dw-icon { flex-shrink: 0; margin-top: 2px; opacity: 0.5; }
-    [data-theme="dark"] .daily-whisper { background: rgba(126,184,160,0.10); color: var(--primary-light); }
+    .daily-whisper .dw-icon { flex-shrink: 0; margin-top: 2px; opacity: 0.6; color: var(--primary); }
+    [data-theme="dark"] .daily-whisper { background: rgba(126,184,160,0.10); color: var(--primary-light); border-color: rgba(126,184,160,0.12); }
 
     .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
     .action-card {
@@ -240,6 +242,9 @@
             }
         } catch (e) { console.error(e); }
     }
+
+    // 树语立即显示，不等待 API
+    document.getElementById('whisperText').textContent = getDailyWhisper();
 
     spawnParticles();
     loadPageData();
