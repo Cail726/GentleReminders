@@ -30,6 +30,20 @@ if "login_attempts" not in insp.get_table_names():
         conn.execute(text("CREATE INDEX idx_login_attempts_ip ON login_attempts(ip)"))
         conn.commit()
 
+# Migration: clean up leftover kaleidoscope experiment (rename fragment_count → tree_level)
+with engine.connect() as conn:
+    result = conn.execute(text("PRAGMA table_info(letters)"))
+    cols = [row[1] for row in result.fetchall()]
+    if "fragment_count" in cols and "tree_level" not in cols:
+        conn.execute(text("ALTER TABLE letters RENAME COLUMN fragment_count TO tree_level"))
+        conn.commit()
+
+# Migration: drop stale kaleidoscopes table from abandoned experiment
+if "kaleidoscopes" in insp.get_table_names():
+    with engine.connect() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS kaleidoscopes"))
+        conn.commit()
+
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
