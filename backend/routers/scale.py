@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from models.database import get_db
 from models.models import ScaleResponse
 from dependencies import get_current_user, json_error, verify_csrf
-from config import SCALE_QUESTIONS, SCALE_DIMENSION_ORDER, interpret_dimension
+from config import SCALE_QUESTIONS, SCALE_DIMENSION_ORDER, interpret_dimension, overall_analysis
 
 router = APIRouter()
 
@@ -57,7 +57,7 @@ def submit_scale(
 
     interpretations = {}
     for dim, avg in dim_avg.items():
-        interpretations[dim] = interpret_dimension(avg)
+        interpretations[dim] = interpret_dimension(avg, dim)
 
     overall = interpret_dimension(total)
 
@@ -77,6 +77,7 @@ def submit_scale(
         "dimension_scores": dim_avg,
         "interpretations": interpretations,
         "overall": overall,
+        "analysis": overall_analysis(dim_avg, total),
         "time": record.create_time.strftime("%Y-%m-%d %H:%M")
     }
 
@@ -95,7 +96,7 @@ def get_scale_history(user=Depends(get_current_user), db: Session = Depends(get_
         dim_scores = json.loads(r.dimension_scores)
         interpretations = {}
         for dim, avg in dim_scores.items():
-            interpretations[dim] = interpret_dimension(avg)
+            interpretations[dim] = interpret_dimension(avg, dim)
         res.append({
             "id": r.id,
             "scale_type": r.scale_type,
@@ -103,6 +104,7 @@ def get_scale_history(user=Depends(get_current_user), db: Session = Depends(get_
             "dimension_scores": dim_scores,
             "interpretations": interpretations,
             "overall": interpret_dimension(r.total_score),
+            "analysis": overall_analysis(dim_scores, r.total_score),
             "time": r.create_time.strftime("%Y-%m-%d %H:%M")
         })
     return res
@@ -118,7 +120,7 @@ def get_scale_result(record_id: int, user=Depends(get_current_user), db: Session
     dim_scores = json.loads(r.dimension_scores)
     interpretations = {}
     for dim, avg in dim_scores.items():
-        interpretations[dim] = interpret_dimension(avg)
+        interpretations[dim] = interpret_dimension(avg, dim)
     return {
         "id": r.id,
         "scale_type": r.scale_type,
@@ -126,5 +128,6 @@ def get_scale_result(record_id: int, user=Depends(get_current_user), db: Session
         "dimension_scores": dim_scores,
         "interpretations": interpretations,
         "overall": interpret_dimension(r.total_score),
+        "analysis": overall_analysis(dim_scores, r.total_score),
         "time": r.create_time.strftime("%Y-%m-%d %H:%M")
     }

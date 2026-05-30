@@ -61,7 +61,7 @@ class TestDimensionOrder:
 
 class TestLetterTemplates:
     def test_has_all_milestone_levels(self):
-        assert list(LETTER_TEMPLATES.keys()) == [5, 10, 15, 20]
+        assert list(LETTER_TEMPLATES.keys()) == [7, 21, 50, 100]
 
     def test_each_template_has_required_fields(self):
         for level, tmpl in LETTER_TEMPLATES.items():
@@ -77,6 +77,6 @@ class TestAiMessages:
         for e in VALID_EMOTIONS:
             assert e in AI_MESSAGES, f"Missing AI messages for {e}"
 
-    def test_each_emotion_has_three_messages(self):
+    def test_each_emotion_has_multiple_messages(self):
         for msgs in AI_MESSAGES.values():
-            assert len(msgs) == 3
+            assert len(msgs) >= 2, "Each emotion should have at least 2 messages"

@@ -36,8 +36,8 @@ def create_checkin(
 
     old_level = tree.level
 
-    # 固定成长：无论什么情绪，每次签到 +15 经验
-    tree.exp += 15
+    # 每次签到 +100 经验 = 升1级（等级 = 签到次数）
+    tree.exp += 100
     is_level_up = False
     if tree.exp >= 100:
         tree.exp -= 100
@@ -73,9 +73,9 @@ def create_checkin(
 
     whisper = pick_whisper(streak, is_first_tree, is_level_up, gap_days)
 
-    # 里程碑信件（5, 10, 15, 20）
+    # 里程碑信件（7, 21, 50, 100）
     new_letter = None
-    milestone_levels = [5, 10, 15, 20]
+    milestone_levels = [7, 21, 50, 100]
     for ml in milestone_levels:
         if old_level < ml <= tree.level:
             new_letter = generate_letter(user_id, tree.level, db)

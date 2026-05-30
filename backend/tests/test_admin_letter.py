@@ -5,15 +5,14 @@ from utils.letter_service import generate_letter
 
 
 class TestLetterService:
-    def test_tree_level_below_5_uses_first_template(self, db: Session):
-        """tree_level < 5 不应该崩溃，返回第一封信"""
+    def test_tree_level_below_7_uses_first_template(self, db: Session):
+        """tree_level < 7 不应该崩溃，返回第一封信"""
         from models.models import User
         from auth import hash_password
         user = User(username="lettertest", password=hash_password("test123"), nickname="信")
         db.add(user)
         db.commit()
 
-        # 添加几条打卡记录
         for emo in ["开心", "低落", "平静"]:
             db.add(CheckIn(user_id=user.id, emotion=emo, content="测试"))
         db.commit()
@@ -24,19 +23,19 @@ class TestLetterService:
         assert letter.content != ""
 
     def test_first_milestone_letter(self, db: Session):
-        """tree_level 刚好达到 5 时应生成信件"""
+        """tree_level 刚好达到 7 时应生成信件"""
         from models.models import User
         from auth import hash_password
         user = User(username="letter2", password=hash_password("test123"), nickname="信2")
         db.add(user)
         db.commit()
 
-        for _ in range(5):
+        for _ in range(7):
             db.add(CheckIn(user_id=user.id, emotion="开心", content="测试"))
         db.commit()
 
-        letter = generate_letter(user.id, 5, db)
-        assert letter.tree_level == 5
+        letter = generate_letter(user.id, 7, db)
+        assert letter.tree_level == 7
         assert letter.user_id == user.id
 
 

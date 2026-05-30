@@ -30,6 +30,7 @@ if "login_attempts" not in insp.get_table_names():
         conn.execute(text("CREATE INDEX idx_login_attempts_ip ON login_attempts(ip)"))
         conn.commit()
 
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles

@@ -4,7 +4,7 @@
 class TestCheckin:
     def test_create_checkin(self, auth_client):
         resp = auth_client.post("/api/checkin", data={
-            "emotion": "开心", "content": "测试打卡"
+            "emotion": "开心", "content": "今天阳光很好，心情也跟着明亮起来"
         })
         data = resp.json()
         assert data["status"] == "ok"
@@ -20,7 +20,7 @@ class TestCheckin:
     def test_checkin_creates_tree(self, auth_client, db):
         """首次签到应该创建小树"""
         from models.models import Tree
-        auth_client.post("/api/checkin", data={"emotion": "开心"})
+        auth_client.post("/api/checkin", data={"emotion": "开心", "content": "第一次打卡，种下一颗种子"})
         tree = db.query(Tree).filter(Tree.user_id == 1).first()
         assert tree is not None
         assert tree.level >= 1
@@ -40,20 +40,20 @@ class TestTreeInfo:
 
 
 class TestLetterTrigger:
-    def test_letter_triggers_at_level_5(self, auth_client, db):
-        """设置树到 4 级 95 经验，下一次签到触发信件"""
+    def test_letter_triggers_at_level_7(self, auth_client, db):
+        """设置树为 6 级，下一次签到触发第一封信（7级里程碑）"""
         from models.models import Tree
         tree = db.query(Tree).filter(Tree.user_id == 1).first()
         if not tree:
             tree = Tree(user_id=1, level=1, exp=0, health=100)
             db.add(tree)
-        tree.level = 4
-        tree.exp = 95
+        tree.level = 6
+        tree.exp = 90
         db.commit()
 
-        resp = auth_client.post("/api/checkin", data={"emotion": "开心"})
+        resp = auth_client.post("/api/checkin", data={"emotion": "开心", "content": "第七片叶子了，树越来越茂盛"})
         data = resp.json()
-        assert data["tree_level"] >= 5
+        assert data["tree_level"] >= 7
         assert "new_letter" in data
 
     def test_letters_list(self, auth_client):
