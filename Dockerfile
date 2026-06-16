@@ -25,4 +25,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 
 # 启动服务 (由 Python 读取 $PORT 环境变量)
 WORKDIR /app/backend
-CMD ["python", "main.py"]
+CMD sh -c 'echo "=== PORT env is: $PORT ===" && python main.py'
