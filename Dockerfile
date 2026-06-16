@@ -13,6 +13,10 @@ COPY frontend/ ./frontend/
 COPY model/ ./model/
 COPY static/ ./static/
 
+# 复制启动脚本
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # 创建数据目录 (与 database.py 中 DB_PATH 一致)
 RUN mkdir -p /app/backend/data
 
@@ -23,6 +27,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request,os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/docs')" || exit 1
 
-# 启动服务 (PORT 由 Python 读取环境变量)
+# 启动 (start.sh 读取 PORT 并启动服务)
 WORKDIR /app/backend
-CMD ["sh", "-c", "echo PORT=$PORT && python main.py"]
+CMD ["/app/start.sh"]
