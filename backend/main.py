@@ -55,7 +55,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "model"))
 # 项目根目录（基于当前文件位置，不依赖 CWD）
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SESSION_SECRET = os.environ.get("GR_SESSION_SECRET") or "gr-2026-" + hashlib.sha256(os.urandom(32)).hexdigest()[:16]
+_raw = os.environ.get("GR_SESSION_SECRET")
+SESSION_SECRET = _raw if _raw else hashlib.sha256(os.urandom(32)).hexdigest()[:32]
 
 app = FastAPI(
     title="Gentle Reminders",
@@ -126,7 +127,10 @@ if __name__ == "__main__":
     def init_admin():
         db = next(get_db())
         if not db.query(Admin).filter(Admin.username == "admin").first():
-            default_pw = os.environ.get("GR_ADMIN_PASSWORD", "gr2026safe")
+            default_pw = os.environ.get("GR_ADMIN_PASSWORD")
+            if not default_pw:
+                print("[GentleReminders] 错误: 首次启动必须设置 GR_ADMIN_PASSWORD 环境变量")
+                sys.exit(1)
             db.add(Admin(username="admin", password=hash_password(default_pw)))
             db.commit()
             print(f"[GentleReminders] 默认管理员: admin / {default_pw}")

@@ -24,4 +24,9 @@ CLAUDE.md
 
 # Project artifacts
 项目原件/
-*.md
+系统报错情况/
+课设输出区/
+docs/
+CLAUDE.md
+claude.md
+*.tar

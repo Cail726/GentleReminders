@@ -28,8 +28,10 @@ backend/data/*.db
 # Claude
 .claude/
 
-# Project originals
-项目原件/
+# Project artifacts (large binaries, temp work)
+系统报错情况/
+课设输出区/
+docs/
 
 # OS
 .DS_Store

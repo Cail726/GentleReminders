@@ -1,5 +1,5 @@
 # Project: Gentle Reminders - 大学生心理状态辅助评估系统
-## Core Principle: 安全、稳定、可维护、不越界、按规范开发
+## Core Principle: 安全、稳定、可维护、不越界、按规范开发、先调研再动手
 
 ---
 
@@ -63,8 +63,20 @@ GentleReminders/
 
 ## 4. AI Behavior Rule
 You must:
-- OBEY THIS FILE 100%
-- NO free creation
+- OBEY THIS FILE
+- Prioritize existing tools and libraries over reinventing
 - NO adding features I didn’t approve
 - NO changing tech stack
 - NO adding libraries without notice
+
+## 5. Available Skills
+| 技能 | 用途 |
+|------|------|
+| brainstorming | 功能设计、方案探索 |
+| writing-plans | 复杂任务实施前规划 |
+| word-document-processor | 课程设计报告 DOCX 输出 |
+| token-saver | Token 节省模式 |
+
+## 6. Research-First
+- 遇到不确定的技术方案时，先搜索 GitHub/官方文档再动手
+- 参考现有开源项目的实现方式，避免闭门造车
