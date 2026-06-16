@@ -23,6 +23,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request,os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/docs')" || exit 1
 
-# 启动服务 (Railway 通过 $PORT 注入动态端口)
+# 启动服务 (由 Python 读取 $PORT 环境变量)
 WORKDIR /app/backend
-CMD python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers
+CMD ["python", "main.py"]

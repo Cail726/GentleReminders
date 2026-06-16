@@ -140,5 +140,6 @@ def init_admin():
 
 if __name__ == "__main__":
     import uvicorn
-    print("Gentle Reminders 系统启动中...")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Gentle Reminders 系统启动中... port={port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
