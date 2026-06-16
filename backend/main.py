@@ -3,10 +3,12 @@ import hashlib
 import os
 import sys
 
-# Log PORT value immediately so it appears in Railway logs
+# Diagnostic: print key env vars at startup
+for _k in sorted(os.environ):
+    if any(w in _k.lower() for w in ("port", "railway", "host", "bind", "addr", "listen")):
+        print(f"[GR-ENV] {_k}={os.environ[_k]}", flush=True)
 _port_val = os.environ.get("PORT", "NOT-SET")
-sys.stderr.write(f"[GR-DEBUG] PORT={_port_val}\n")
-sys.stderr.flush()
+print(f"[GR-DEBUG] PORT={_port_val}", flush=True)
 
 from models.database import engine, Base
 from starlette.middleware.sessions import SessionMiddleware
