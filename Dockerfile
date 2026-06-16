@@ -23,6 +23,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request,os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",\"8000\")}/docs')" || exit 1
 
-# 启动服务 (由 Python 读取 $PORT 环境变量)
+# 启动服务 (PORT 由 Python 读取环境变量)
 WORKDIR /app/backend
-CMD sh -c 'echo "=== PORT env is: $PORT ===" && python main.py'
+CMD ["sh", "-c", "echo PORT=$PORT && python main.py"]

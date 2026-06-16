@@ -3,6 +3,11 @@ import hashlib
 import os
 import sys
 
+# Log PORT value immediately so it appears in Railway logs
+_port_val = os.environ.get("PORT", "NOT-SET")
+sys.stderr.write(f"[GR-DEBUG] PORT={_port_val}\n")
+sys.stderr.flush()
+
 from models.database import engine, Base
 from starlette.middleware.sessions import SessionMiddleware
 
