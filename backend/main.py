@@ -127,6 +127,11 @@ app.include_router(admin_router)
 app.include_router(pages_router)
 
 
+@app.get("/api/version")
+def api_version():
+    return {"commit": "603faf4", "msg": "print all env vars"}
+
+
 @app.on_event("startup")
 def init_admin():
     from models.database import get_db
