@@ -57,6 +57,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _raw = os.environ.get("GR_SESSION_SECRET")
 SESSION_SECRET = _raw if _raw else hashlib.sha256(os.urandom(32)).hexdigest()[:32]
+HTTPS_ONLY = os.environ.get("GR_SESSION_HTTPS", "").lower() in ("1", "true", "yes")
 
 app = FastAPI(
     title="Gentle Reminders",
@@ -69,7 +70,7 @@ app.add_middleware(
     session_cookie="gr_session",
     max_age=86400,          # 24 小时
     same_site="lax",
-    https_only=False,       # 部署到 HTTPS 后改为 True
+    https_only=HTTPS_ONLY,
 )
 
 app.mount("/static", StaticFiles(directory=os.path.join(PROJECT_ROOT, "static")), name="static")
@@ -85,7 +86,7 @@ async def csrf_middleware(request: Request, call_next):
         token = hashlib.sha256(os.urandom(32)).hexdigest()
         response.set_cookie(
             "csrf_token", token,
-            max_age=86400, samesite="strict", httponly=False, secure=False
+            max_age=86400, samesite="strict", httponly=False, secure=HTTPS_ONLY
         )
     return response
 
@@ -119,25 +120,25 @@ app.include_router(admin_router)
 app.include_router(pages_router)
 
 
-if __name__ == "__main__":
+@app.on_event("startup")
+def init_admin():
     from models.database import get_db
     from models.models import Admin
     from auth import hash_password
 
-    def init_admin():
-        db = next(get_db())
-        if not db.query(Admin).filter(Admin.username == "admin").first():
-            default_pw = os.environ.get("GR_ADMIN_PASSWORD")
-            if not default_pw:
-                print("[GentleReminders] 错误: 首次启动必须设置 GR_ADMIN_PASSWORD 环境变量")
-                sys.exit(1)
+    db = next(get_db())
+    if not db.query(Admin).filter(Admin.username == "admin").first():
+        default_pw = os.environ.get("GR_ADMIN_PASSWORD")
+        if not default_pw:
+            print("[GentleReminders] 未设置 GR_ADMIN_PASSWORD，跳过 admin 创建")
+        else:
             db.add(Admin(username="admin", password=hash_password(default_pw)))
             db.commit()
             print(f"[GentleReminders] 默认管理员: admin / {default_pw}")
-        db.close()
+    db.close()
 
-    init_admin()
 
+if __name__ == "__main__":
     import uvicorn
     print("Gentle Reminders 系统启动中...")
     uvicorn.run(app, host="127.0.0.1", port=8000)

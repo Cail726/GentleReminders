@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6b8f71">
+    <meta name="description" content="Gentle Reminders - 大学生心理状态辅助评估系统">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>{% block title %}{% endblock %}</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <script>
     (function(){try{var t=localStorage.getItem('gr-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
     </script>
-    <link rel="stylesheet" href="/static/css/style.css?v=5">
+    <link rel="stylesheet" href="/static/css/style.css?v=6">
     {% block extra_head %}{% endblock %}
     {% block page_css %}{% endblock %}
 </head>
@@ -18,8 +25,13 @@
         <div class="bg-orb"></div>
     </div>
     {% block body %}{% endblock %}
-    <script src="https://unpkg.com/lucide@0.562.0"></script>
-    <script src="/static/js/app.js?v=5"></script>
+    <script src="/static/js/vendor/lucide.min.js"></script>
+    <script src="/static/js/app.js?v=6"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js');
+    }
+    </script>
     {% block page_js %}{% endblock %}
 </body>
 </html>

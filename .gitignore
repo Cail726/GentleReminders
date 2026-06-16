@@ -31,6 +31,7 @@ backend/data/*.db
 # Project artifacts (large binaries, temp work)
 系统报错情况/
 课设输出区/
+系统部署/
 docs/
 
 # OS
