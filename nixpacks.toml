@@ -1,5 +1,4 @@
-[providers]
-python = "3.11"
+providers = ["python"]
 
 [start]
 cmd = "cd backend && python main.py"
