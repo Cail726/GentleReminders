@@ -3,13 +3,6 @@ import hashlib
 import os
 import sys
 
-# Diagnostic: print key env vars at startup
-for _k in sorted(os.environ):
-    if any(w in _k.lower() for w in ("port", "railway", "host", "bind", "addr", "listen")):
-        print(f"[GR-ENV] {_k}={os.environ[_k]}", flush=True)
-_port_val = os.environ.get("PORT", "NOT-SET")
-print(f"[GR-DEBUG] PORT={_port_val}", flush=True)
-
 from models.database import engine, Base
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -125,11 +118,6 @@ app.include_router(trends_router)
 app.include_router(ai_router)
 app.include_router(admin_router)
 app.include_router(pages_router)
-
-
-@app.get("/api/version")
-def api_version():
-    return {"commit": "603faf4", "msg": "print all env vars"}
 
 
 @app.on_event("startup")
