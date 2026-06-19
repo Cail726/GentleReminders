@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6b8f71">
+    <meta name="description" content="Gentle Reminders - 大学生心理状态辅助评估系统">
+    <title>Gentle Reminders</title>
+    <link rel="manifest" href="/GentleReminders/pwabuilder-manifest.json">
+    <link rel="icon" href="/GentleReminders/static/icons/icon-512.png">
+</head>
+<body>
+    <h1>Gentle Reminders</h1>
+    <p>大学生心理状态辅助评估系统</p>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/GentleReminders/static/sw.js', { scope: '/' });
+    }
+    </script>
+</body>
+</html>
